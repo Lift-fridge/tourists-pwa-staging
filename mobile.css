@@ -30,7 +30,7 @@ body.mobile-itinerary-active #mobile-home-message { display: none; }
 body.mobile-cover-active .mobile-home-card { position: relative; width: 100%; min-height: 100svh; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 body.mobile-cover-active .mobile-trip-content { min-height: 100svh; padding: 28px 24px; background: var(--mobile-paper); }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-9e05ba4') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-7736105') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -193,8 +193,9 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
 .mobile-info-card-transport-mode { margin: .24rem 0 0; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); line-height: 1.5; }
 .mobile-info-card-information { margin: .4rem 0 0; color: var(--mobile-ink); font-size: var(--mobile-font-prose); line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
 .mobile-info-card-formal.mobile-info-card-transport { background: var(--mobile-paper); background-clip: content-box; }
-.mobile-info-options { margin: -.05rem 0 .4rem 1rem; padding-left: .75rem; border-left: 1px solid var(--mobile-rule); }
-.mobile-info-options .mobile-info-card { padding: .6rem 0; border-bottom: 0; }
+.mobile-info-options { margin: -.05rem 0 .4rem 1rem; padding-left: .75rem; }
+.mobile-info-options .mobile-info-card { position: relative; padding: .6rem 0; border-bottom: 0; }
+.mobile-info-options .mobile-info-card::before { position: absolute; top: .6rem; bottom: .6rem; left: calc(-.75rem - 1px); width: 1px; background: var(--mobile-rule); content: ''; }
 .mobile-info-candidate-separator { margin: .9rem 0 .4rem; color: var(--mobile-muted); text-align: center; letter-spacing: .18em; }
 .mobile-itinerary-day:not(.mobile-info-day) > .mobile-info-candidate-separator { margin-top: 2.7rem; margin-bottom: 1.4rem; }
 .mobile-info-day > .mobile-info-candidate-separator { margin-top: 2.7rem; margin-bottom: 1.4rem; }
