@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2a2925">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TOURISTS STAGING">
+  <link rel="manifest" href="./manifest.webmanifest?pwa=staging-2bc2496">
+  <link rel="icon" href="./assets/icon-192.png?pwa=staging-2bc2496" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png?pwa=staging-2bc2496">
+  <title>TOURISTS STAGING</title>
+  <link rel="stylesheet" href="./mobile.css?pwa=staging-2bc2496">
+  <script src="./mobile-snapshot-store.js?pwa=staging-2bc2496" defer></script>
+  <script src="./mobile-incoming-snapshot.js?pwa=staging-2bc2496" defer></script>
+  <script src="./assets/jsqr-1.4.0.js?pwa=staging-2bc2496" defer></script>
+  <script src="./tourists-public-config.js?pwa=staging-2bc2496" defer></script>
+  <script src="./mobile.js?pwa=staging-2bc2496" defer></script>
+</head>
+<body>
+  <main class="mobile-home-card">
+    <section id="mobile-cover" class="mobile-cover" aria-labelledby="mobile-cover-title" hidden>
+      <button type="button" id="mobile-cover-saved-trips-show" class="mobile-cover-brand" aria-label="保存した旅行一覧を開く">旅のしおり</button>
+      <div class="mobile-cover-content">
+        <h1 id="mobile-cover-title"></h1>
+        <p id="mobile-cover-destination" class="mobile-cover-destination" hidden></p>
+        <p id="mobile-cover-dates" class="mobile-cover-dates"></p>
+        <p id="mobile-cover-saved-at" class="mobile-cover-saved-at" hidden></p>
+      </div>
+      <div class="mobile-cover-footer" aria-hidden="true">
+        <img class="mobile-cover-ornament" src="./assets/mobile-clover.svg?pwa=staging-2bc2496" alt="">
+        <p class="mobile-cover-swipe"><span>↑</span> 上へスワイプして旅をはじめる</p>
+      </div>
+    </section>
+    <section id="mobile-trip-content">
+      <p class="mobile-home-eyebrow">旅のしおり</p>
+      <h1 id="mobile-home-trip-title">旅のしおり</h1>
+      <p id="mobile-home-trip-dates" class="mobile-home-dates" hidden></p>
+      <p id="mobile-home-message" role="status" aria-live="polite">保存した旅のしおりを読み込んでいます…</p>
+      <section id="mobile-itinerary" class="mobile-itinerary" aria-label="旅程" hidden>
+        <header class="mobile-itinerary-header">
+          <nav class="mobile-itinerary-tabs" aria-label="しおりの画面">
+            <button type="button" id="mobile-itinerary-tab-info" class="mobile-itinerary-tab" aria-controls="mobile-itinerary-days">情報</button>
+            <button type="button" id="mobile-itinerary-tab-itinerary" class="mobile-itinerary-tab mobile-itinerary-tab-current" aria-controls="mobile-itinerary-days" aria-current="page">旅程</button>
+            <button type="button" id="mobile-itinerary-tab-memo" class="mobile-itinerary-tab" aria-controls="mobile-itinerary-days">メモ</button>
+          </nav>
+          <nav id="mobile-itinerary-date-nav" class="mobile-itinerary-date-nav" aria-label="日付ナビゲーション"></nav>
+        </header>
+        <div id="mobile-itinerary-days" class="mobile-itinerary-days"></div>
+      </section>
+    </section>
+    <section id="mobile-saved-trip-list" class="mobile-saved-trip-list" aria-labelledby="mobile-saved-trip-list-heading" hidden>
+      <div class="mobile-saved-trip-list-heading">
+        <h2 id="mobile-saved-trip-list-heading">旅のしおり</h2>
+      </div>
+      <p id="mobile-saved-trip-list-status" role="status" aria-live="polite"></p>
+      <div id="mobile-saved-trip-list-items"></div>
+      <div class="mobile-saved-trip-receive">
+        <button type="button" id="mobile-saved-trip-receive-show">旅行を受け取る</button>
+        <section id="mobile-saved-trip-qr-scanner" class="mobile-saved-trip-qr-scanner" aria-labelledby="mobile-saved-trip-qr-scanner-heading" hidden>
+          <div class="mobile-saved-trip-qr-scanner-content">
+            <h2 id="mobile-saved-trip-qr-scanner-heading">QRコードを読み取る</h2>
+            <video id="mobile-saved-trip-qr-scanner-video" autoplay muted playsinline></video>
+            <canvas id="mobile-saved-trip-qr-scanner-canvas" hidden></canvas>
+            <p id="mobile-saved-trip-qr-scanner-status" role="status" aria-live="polite"></p>
+            <button type="button" id="mobile-saved-trip-qr-scanner-close">閉じる</button>
+          </div>
+        </section>
+      </div>
+    </section>
+    <section id="mobile-pwa-diagnostics" class="mobile-pwa-diagnostics" aria-labelledby="mobile-pwa-diagnostics-heading">
+      <p class="mobile-staging-build" aria-label="STAGING build ID">STAGING · 2bc2496</p>
+      <button type="button" id="mobile-pwa-diagnostics-show">PWA診断を表示</button>
+      <pre id="mobile-pwa-diagnostics-result" hidden aria-live="polite"></pre>
+    </section>
+  </main>
+</body>
+</html>
