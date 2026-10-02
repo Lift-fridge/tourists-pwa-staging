@@ -30,7 +30,7 @@ body.mobile-itinerary-active #mobile-home-message { display: none; }
 body.mobile-cover-active .mobile-home-card { position: relative; width: 100%; min-height: 100svh; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 body.mobile-cover-active .mobile-trip-content { min-height: 100svh; padding: 28px 24px; background: var(--mobile-paper); }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-2bc2496') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-9463f1d') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -212,4 +212,4 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
 .mobile-pwa-diagnostics > button { width: 100%; }
 #mobile-pwa-diagnostics-result { margin: .65rem 0 0; padding: .75rem; overflow-wrap: anywhere; white-space: pre-wrap; border-radius: 0; background: var(--mobile-paper-deep); color: var(--mobile-ink); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-.mobile-staging-build { margin: .5rem 0 0; color: #745421; font: 700 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .03em; }
+.mobile-staging-build { position: fixed; z-index: 3; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); margin: 0; padding: 2px 5px; color: #745421; background: rgba(246, 246, 244, .84); font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .03em; pointer-events: none; }
