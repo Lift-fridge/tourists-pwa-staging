@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-47f4ff8';
+const PWA_SHELL_VERSION = 'staging-7fd9ee4';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-47f4ff8',
-  './mobile.js?pwa=staging-47f4ff8',
-  './mobile.css?pwa=staging-47f4ff8',
-  './mobile-snapshot-store.js?pwa=staging-47f4ff8',
-  './mobile-incoming-snapshot.js?pwa=staging-47f4ff8',
-  './tourists-public-config.js?pwa=staging-47f4ff8',
-  './assets/jsqr-1.4.0.js?pwa=staging-47f4ff8',
-  './manifest.webmanifest?pwa=staging-47f4ff8',
-  './assets/icon-192.png?pwa=staging-47f4ff8',
-  './assets/icon-512.png?pwa=staging-47f4ff8',
-  './assets/icon-maskable-512.png?pwa=staging-47f4ff8',
-  './assets/mobile-cover.png?pwa=staging-47f4ff8',
-  './assets/mobile-clover.svg?pwa=staging-47f4ff8',
+  './index.html?pwa=staging-7fd9ee4',
+  './mobile.js?pwa=staging-7fd9ee4',
+  './mobile.css?pwa=staging-7fd9ee4',
+  './mobile-snapshot-store.js?pwa=staging-7fd9ee4',
+  './mobile-incoming-snapshot.js?pwa=staging-7fd9ee4',
+  './tourists-public-config.js?pwa=staging-7fd9ee4',
+  './assets/jsqr-1.4.0.js?pwa=staging-7fd9ee4',
+  './manifest.webmanifest?pwa=staging-7fd9ee4',
+  './assets/icon-192.png?pwa=staging-7fd9ee4',
+  './assets/icon-512.png?pwa=staging-7fd9ee4',
+  './assets/icon-maskable-512.png?pwa=staging-7fd9ee4',
+  './assets/mobile-cover.png?pwa=staging-7fd9ee4',
+  './assets/mobile-clover.svg?pwa=staging-7fd9ee4',
 ];
 
 let selectedMobileDayKey = null;
@@ -267,7 +267,7 @@ function appendMobileExternalLink(parent, url, label, kind) {
 }
 
 function appendMobileItineraryLinks(parent, item) {
-  const links = document.createElement('div');
+  const links = document.createElement('span');
   links.className = 'mobile-itinerary-links';
   const mapsUrl = mobileExternalUrl(item.maps_url);
   if (mapsUrl) appendMobileExternalLink(links, mapsUrl, 'Google Mapsを開く', 'maps');
@@ -310,7 +310,15 @@ function mobileItemHeading(item) {
   return item.title;
 }
 
-function mobileItemTimeLabel(item) {
+function mobileItineraryTimeLabel(item) {
+  const start = mobileItemStartTime(item);
+  const end = mobileItemEndTime(item);
+  if (start) return start;
+  if (end) return end + 'まで';
+  return '';
+}
+
+function mobileInfoTimeRange(item) {
   const start = mobileItemStartTime(item);
   const end = mobileItemEndTime(item);
   if (start && end) return start + '–' + end;
@@ -319,24 +327,31 @@ function mobileItemTimeLabel(item) {
   return '';
 }
 
-function mobileInfoTimeRange(item) {
-  return mobileItemTimeLabel(item);
-}
-
 function appendMobileItineraryLine(parent, item, time, lineClassName, {reserveTimeColumn = false} = {}) {
   const line = document.createElement('div');
   line.className = lineClassName;
   if (time || reserveTimeColumn) {
     const timeCell = document.createElement('p');
     timeCell.className = 'mobile-itinerary-card-time';
-    if (time) timeCell.textContent = time;
-    else timeCell.setAttribute('aria-hidden', 'true');
+    if (time) {
+      if (!mobileItemStartTime(item) && mobileItemEndTime(item) && time.endsWith('まで')) {
+        timeCell.append(document.createTextNode(time.slice(0, -2)));
+        const suffix = document.createElement('span');
+        suffix.className = 'mobile-itinerary-time-suffix';
+        suffix.textContent = 'まで';
+        timeCell.append(suffix);
+      } else {
+        timeCell.textContent = time;
+      }
+    } else {
+      timeCell.setAttribute('aria-hidden', 'true');
+    }
     line.append(timeCell);
   }
   const content = document.createElement('div');
   content.className = 'mobile-itinerary-card-content';
-  appendMobileText(content, 'h3', 'mobile-itinerary-card-title', mobileItemHeading(item));
-  appendMobileItineraryLinks(content, item);
+  const title = appendMobileText(content, 'h3', 'mobile-itinerary-card-title', mobileItemHeading(item));
+  if (title) appendMobileItineraryLinks(title, item);
   line.append(content);
   parent.append(line);
 }
@@ -349,7 +364,7 @@ function renderMobileItineraryCard(item, {
   card.className = 'mobile-itinerary-card mobile-itinerary-card-' + kind + ' ' + (isTransport
     ? 'mobile-itinerary-card-transport' : 'mobile-itinerary-card-stay');
   if (kind === 'formal' && Number.isInteger(itemIndex)) card.setAttribute('data-mobile-item-index', String(itemIndex));
-  const time = showTime ? mobileItemTimeLabel(item) : '';
+  const time = showTime ? mobileItineraryTimeLabel(item) : '';
   const lineOptions = {reserveTimeColumn: reserveTimeColumn || showTime};
   if (!isTransport) {
     appendMobileItineraryLine(card, item, time, 'mobile-itinerary-stay-line', lineOptions);
@@ -377,8 +392,8 @@ function appendMobileInfoCard(parent, item, {
 
   const heading = document.createElement('div');
   heading.className = 'mobile-info-card-heading';
-  appendMobileText(heading, 'h3', 'mobile-info-card-title', mobileItemHeading(item));
-  appendMobileItineraryLinks(heading, item);
+  const title = appendMobileText(heading, 'h3', 'mobile-info-card-title', mobileItemHeading(item));
+  if (title) appendMobileItineraryLinks(title, item);
   card.append(heading);
 
   if (showTransport && isTransport) {
@@ -764,7 +779,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-47f4ff8';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-7fd9ee4';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1882,7 +1897,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v78）' : 'あり（v78確認不可）';
+    ? 'あり（v82）' : 'あり（v82確認不可）';
 }
 
 async function showPwaDiagnostics() {
