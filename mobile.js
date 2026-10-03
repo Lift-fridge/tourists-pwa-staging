@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-43fba5b';
+const PWA_SHELL_VERSION = 'staging-3835b7d';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-43fba5b',
-  './mobile.js?pwa=staging-43fba5b',
-  './mobile.css?pwa=staging-43fba5b',
-  './mobile-snapshot-store.js?pwa=staging-43fba5b',
-  './mobile-incoming-snapshot.js?pwa=staging-43fba5b',
-  './tourists-public-config.js?pwa=staging-43fba5b',
-  './assets/jsqr-1.4.0.js?pwa=staging-43fba5b',
-  './manifest.webmanifest?pwa=staging-43fba5b',
-  './assets/icon-192.png?pwa=staging-43fba5b',
-  './assets/icon-512.png?pwa=staging-43fba5b',
-  './assets/icon-maskable-512.png?pwa=staging-43fba5b',
-  './assets/mobile-cover.png?pwa=staging-43fba5b',
-  './assets/mobile-clover.svg?pwa=staging-43fba5b',
+  './index.html?pwa=staging-3835b7d',
+  './mobile.js?pwa=staging-3835b7d',
+  './mobile.css?pwa=staging-3835b7d',
+  './mobile-snapshot-store.js?pwa=staging-3835b7d',
+  './mobile-incoming-snapshot.js?pwa=staging-3835b7d',
+  './tourists-public-config.js?pwa=staging-3835b7d',
+  './assets/jsqr-1.4.0.js?pwa=staging-3835b7d',
+  './manifest.webmanifest?pwa=staging-3835b7d',
+  './assets/icon-192.png?pwa=staging-3835b7d',
+  './assets/icon-512.png?pwa=staging-3835b7d',
+  './assets/icon-maskable-512.png?pwa=staging-3835b7d',
+  './assets/mobile-cover.png?pwa=staging-3835b7d',
+  './assets/mobile-clover.svg?pwa=staging-3835b7d',
 ];
 
 let selectedMobileDayKey = null;
@@ -801,7 +801,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-43fba5b';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-3835b7d';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
