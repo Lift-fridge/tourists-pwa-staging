@@ -21,6 +21,7 @@ body { display: grid; min-height: 100vh; margin: 0; padding: 24px 16px; place-it
 .mobile-home-card { width: min(100%, 32rem); padding: 28px 24px; border: 1px solid var(--mobile-rule); border-radius: 0; background: var(--mobile-paper); box-shadow: none; }
 body.mobile-cover-active { display: block; height: 100svh; overflow: hidden; padding: 0; overscroll-behavior-y: none; background: var(--mobile-paper); }
 body.mobile-itinerary-active { display: block; min-height: 100svh; overflow-y: auto; padding: 0; background: var(--mobile-body); }
+body.mobile-itinerary-active.mobile-memo-viewport-fit { overflow-y: hidden; }
 body.mobile-itinerary-active .mobile-home-card { width: 100%; max-width: none; min-height: 100svh; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 body.mobile-itinerary-active .mobile-trip-content { min-height: 100svh; padding: 0; background: var(--mobile-body); }
 body.mobile-itinerary-active .mobile-home-eyebrow,
@@ -30,7 +31,7 @@ body.mobile-itinerary-active #mobile-home-message { display: none; }
 body.mobile-cover-active .mobile-home-card { position: relative; width: 100%; min-height: 100svh; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 body.mobile-cover-active .mobile-trip-content { min-height: 100svh; padding: 28px 24px; background: var(--mobile-paper); }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-7fd9ee4') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-1923fc3') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -179,8 +180,8 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
 .mobile-itinerary-card-arrival { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .mobile-itinerary-links { display: inline-flex; height: 1.5em; align-items: center; margin-inline-start: .35rem; gap: .125rem; vertical-align: text-bottom; white-space: nowrap; }
 
-/* Keep itinerary title links on the title's final text line without changing Information cards. */
-.mobile-itinerary-card-title > .mobile-itinerary-links { vertical-align: middle; }
+/* The itinerary group shares the title baseline without a per-icon offset. */
+.mobile-itinerary-card-title > .mobile-itinerary-links { height: auto; align-items: baseline; line-height: inherit; vertical-align: baseline; }
 .mobile-itinerary-card-title > .mobile-itinerary-links .mobile-itinerary-url-link-maps svg { transform: none; }
 .mobile-itinerary-url-link { position: relative; display: inline-flex; width: 28px; min-width: 28px; height: 1.5em; min-height: 1.5em; align-items: center; justify-content: center; padding: 0; color: #2d6f9e; line-height: 1; text-decoration: none; }
 .mobile-itinerary-url-link::before { position: absolute; top: 50%; left: 50%; width: 30px; height: 40px; content: ''; transform: translate(-50%, -50%); }
@@ -199,9 +200,9 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
 .mobile-info-card-transport-mode { margin: .24rem 0 0; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); line-height: 1.5; }
 .mobile-info-card-information { margin: .4rem 0 0; color: var(--mobile-ink); font-size: var(--mobile-font-prose); line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
 .mobile-info-card-formal.mobile-info-card-transport { background: var(--mobile-paper); background-clip: content-box; }
-.mobile-info-options { margin: -.05rem 0 .4rem 1rem; padding-left: .75rem; }
-.mobile-info-options .mobile-info-card { position: relative; padding: .6rem 0; border-bottom: 0; }
-.mobile-info-options .mobile-info-card::before { position: absolute; top: .6rem; bottom: .6rem; left: calc(-.75rem - 1px); width: 1px; background: var(--mobile-rule); content: ''; }
+.mobile-itinerary-options, .mobile-info-options { margin: -.05rem 0 .4rem 1rem; padding-left: .75rem; }
+.mobile-itinerary-options .mobile-itinerary-card, .mobile-info-options .mobile-info-card { position: relative; padding: .6rem 0; border-bottom: 0; }
+.mobile-itinerary-options .mobile-itinerary-card::before, .mobile-info-options .mobile-info-card::before { position: absolute; top: .6rem; bottom: .6rem; left: calc(-.75rem - 1px); width: 1px; background: var(--mobile-rule); content: ''; }
 .mobile-info-candidate-separator { margin: .9rem 0 .4rem; color: var(--mobile-muted); text-align: center; letter-spacing: .18em; }
 .mobile-itinerary-day:not(.mobile-info-day) > .mobile-info-candidate-separator { margin-top: 2.7rem; margin-bottom: 1.4rem; }
 .mobile-info-day > .mobile-info-candidate-separator { margin-top: 2.7rem; margin-bottom: 1.4rem; }
