@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-847769b';
+const PWA_SHELL_VERSION = 'staging-785dbcc';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-847769b',
-  './mobile.js?pwa=staging-847769b',
-  './mobile.css?pwa=staging-847769b',
-  './mobile-snapshot-store.js?pwa=staging-847769b',
-  './mobile-incoming-snapshot.js?pwa=staging-847769b',
-  './tourists-public-config.js?pwa=staging-847769b',
-  './assets/jsqr-1.4.0.js?pwa=staging-847769b',
-  './manifest.webmanifest?pwa=staging-847769b',
-  './assets/icon-192.png?pwa=staging-847769b',
-  './assets/icon-512.png?pwa=staging-847769b',
-  './assets/icon-maskable-512.png?pwa=staging-847769b',
-  './assets/mobile-cover.png?pwa=staging-847769b',
-  './assets/mobile-clover.svg?pwa=staging-847769b',
+  './index.html?pwa=staging-785dbcc',
+  './mobile.js?pwa=staging-785dbcc',
+  './mobile.css?pwa=staging-785dbcc',
+  './mobile-snapshot-store.js?pwa=staging-785dbcc',
+  './mobile-incoming-snapshot.js?pwa=staging-785dbcc',
+  './tourists-public-config.js?pwa=staging-785dbcc',
+  './assets/jsqr-1.4.0.js?pwa=staging-785dbcc',
+  './manifest.webmanifest?pwa=staging-785dbcc',
+  './assets/icon-192.png?pwa=staging-785dbcc',
+  './assets/icon-512.png?pwa=staging-785dbcc',
+  './assets/icon-maskable-512.png?pwa=staging-785dbcc',
+  './assets/mobile-cover.png?pwa=staging-785dbcc',
+  './assets/mobile-clover.svg?pwa=staging-785dbcc',
 ];
 
 let selectedMobileDayKey = null;
@@ -801,7 +801,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-847769b';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-785dbcc';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -862,33 +862,22 @@ function selectMobileItineraryDay(snapshot, dayKey) {
 
 function mobileItineraryScrollState() {
   const root = document.scrollingElement || document.documentElement || document.body;
-  const top = Math.max(
-    typeof root?.scrollTop === 'number' ? root.scrollTop : 0,
-    typeof window.scrollY === 'number' ? window.scrollY : 0,
-  );
-  const viewport = typeof root?.clientHeight === 'number' && root.clientHeight > 0
+  const rootTop = typeof root?.scrollTop === 'number' ? root.scrollTop : 0;
+  const windowTop = typeof window.scrollY === 'number' ? window.scrollY : 0;
+  const clientHeight = typeof root?.clientHeight === 'number' && root.clientHeight > 0
     ? root.clientHeight : (window.innerHeight || 0);
-  const height = typeof root?.scrollHeight === 'number' ? root.scrollHeight : viewport;
-  return {top, maxTop: Math.max(0, height - viewport)};
-}
-
-function mobileSelectedItineraryDayFitsViewport() {
-  const day = mobileItineraryDays.firstElementChild || mobileItineraryDays.children?.[0];
-  const rect = day?.getBoundingClientRect?.();
-  const viewport = window.innerHeight || document.scrollingElement?.clientHeight || 0;
-  const navBottom = mobileItineraryDateNav.getBoundingClientRect?.().bottom;
-  const available = viewport - (typeof navBottom === 'number'
-    ? Math.max(0, Math.min(navBottom, viewport)) : 0);
-  return Boolean(rect && typeof rect.height === 'number' && rect.height <= available + 1);
+  const scrollHeight = Math.max(clientHeight,
+    typeof root?.scrollHeight === 'number' ? root.scrollHeight : clientHeight);
+  const maxTop = Math.max(0, scrollHeight - clientHeight);
+  const top = Math.min(maxTop, Math.max(0, rootTop || windowTop));
+  return {root, top, clientHeight, scrollHeight, maxTop};
 }
 
 function mobileItineraryDayEdgeState() {
-  const {top, maxTop} = mobileItineraryScrollState();
-  const shortDay = mobileSelectedItineraryDayFitsViewport();
+  const {top, clientHeight, scrollHeight} = mobileItineraryScrollState();
   return {
-    shortDay,
-    atTop: shortDay || top <= 1,
-    atBottom: shortDay || top >= maxTop - 1,
+    atTop: top <= 1,
+    atBottom: top + clientHeight >= scrollHeight - 1,
   };
 }
 
@@ -2037,7 +2026,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v85）' : 'あり（v85確認不可）';
+    ? 'あり（v86）' : 'あり（v86確認不可）';
 }
 
 async function showPwaDiagnostics() {
