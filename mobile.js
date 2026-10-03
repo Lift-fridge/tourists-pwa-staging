@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-609ec17';
+const PWA_SHELL_VERSION = 'staging-45dce09';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-609ec17',
-  './mobile.js?pwa=staging-609ec17',
-  './mobile.css?pwa=staging-609ec17',
-  './mobile-snapshot-store.js?pwa=staging-609ec17',
-  './mobile-incoming-snapshot.js?pwa=staging-609ec17',
-  './tourists-public-config.js?pwa=staging-609ec17',
-  './assets/jsqr-1.4.0.js?pwa=staging-609ec17',
-  './manifest.webmanifest?pwa=staging-609ec17',
-  './assets/icon-192.png?pwa=staging-609ec17',
-  './assets/icon-512.png?pwa=staging-609ec17',
-  './assets/icon-maskable-512.png?pwa=staging-609ec17',
-  './assets/mobile-cover.png?pwa=staging-609ec17',
-  './assets/mobile-clover.svg?pwa=staging-609ec17',
+  './index.html?pwa=staging-45dce09',
+  './mobile.js?pwa=staging-45dce09',
+  './mobile.css?pwa=staging-45dce09',
+  './mobile-snapshot-store.js?pwa=staging-45dce09',
+  './mobile-incoming-snapshot.js?pwa=staging-45dce09',
+  './tourists-public-config.js?pwa=staging-45dce09',
+  './assets/jsqr-1.4.0.js?pwa=staging-45dce09',
+  './manifest.webmanifest?pwa=staging-45dce09',
+  './assets/icon-192.png?pwa=staging-45dce09',
+  './assets/icon-512.png?pwa=staging-45dce09',
+  './assets/icon-maskable-512.png?pwa=staging-45dce09',
+  './assets/mobile-cover.png?pwa=staging-45dce09',
+  './assets/mobile-clover.svg?pwa=staging-45dce09',
 ];
 
 let selectedMobileDayKey = null;
@@ -811,7 +811,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-609ec17';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-45dce09';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1045,8 +1045,12 @@ function settleMobileTabSwipe(gesture, commit) {
     } else {
       restoreMobileTabScroll(swipe.sourceTab, swipe.sourceState);
     }
-    swipe.overlay.remove?.();
-    mobileTabSwipeSettling = false;
+    // Keep the final overlay frame above the completed live DOM for one presentation frame.
+    // Removing it on the following frame avoids exposing an intermediate header layout.
+    nextMobileFrame(() => nextMobileFrame(() => {
+      swipe.overlay.remove?.();
+      mobileTabSwipeSettling = false;
+    }));
   }, MOBILE_TAB_SWIPE_SETTLE_MS);
   return true;
 }
@@ -2063,7 +2067,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v92）' : 'あり（v92確認不可）';
+    ? 'あり（v93）' : 'あり（v93確認不可）';
 }
 
 async function showPwaDiagnostics() {
