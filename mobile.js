@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-571e9df';
+const PWA_SHELL_VERSION = 'staging-69a282e';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-571e9df',
-  './mobile.js?pwa=staging-571e9df',
-  './mobile.css?pwa=staging-571e9df',
-  './mobile-snapshot-store.js?pwa=staging-571e9df',
-  './mobile-incoming-snapshot.js?pwa=staging-571e9df',
-  './tourists-public-config.js?pwa=staging-571e9df',
-  './assets/jsqr-1.4.0.js?pwa=staging-571e9df',
-  './manifest.webmanifest?pwa=staging-571e9df',
-  './assets/icon-192.png?pwa=staging-571e9df',
-  './assets/icon-512.png?pwa=staging-571e9df',
-  './assets/icon-maskable-512.png?pwa=staging-571e9df',
-  './assets/mobile-cover.png?pwa=staging-571e9df',
-  './assets/mobile-clover.svg?pwa=staging-571e9df',
+  './index.html?pwa=staging-69a282e',
+  './mobile.js?pwa=staging-69a282e',
+  './mobile.css?pwa=staging-69a282e',
+  './mobile-snapshot-store.js?pwa=staging-69a282e',
+  './mobile-incoming-snapshot.js?pwa=staging-69a282e',
+  './tourists-public-config.js?pwa=staging-69a282e',
+  './assets/jsqr-1.4.0.js?pwa=staging-69a282e',
+  './manifest.webmanifest?pwa=staging-69a282e',
+  './assets/icon-192.png?pwa=staging-69a282e',
+  './assets/icon-512.png?pwa=staging-69a282e',
+  './assets/icon-maskable-512.png?pwa=staging-69a282e',
+  './assets/mobile-cover.png?pwa=staging-69a282e',
+  './assets/mobile-clover.svg?pwa=staging-69a282e',
 ];
 
 let selectedMobileDayKey = null;
@@ -764,7 +764,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-571e9df';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-69a282e';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1828,6 +1828,7 @@ async function initializeMobileHome() {
 }
 
 function prepareMobilePreview() {
+  if (mobilePreview.enabled) homeTitle.textContent = 'TOURISTS';
   savedTripsShow.disabled = true;
   savedTripsShow.setAttribute('aria-disabled', 'true');
   savedTripList.hidden = true;
