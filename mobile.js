@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-9a0784e';
+const PWA_SHELL_VERSION = 'staging-847769b';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-9a0784e',
-  './mobile.js?pwa=staging-9a0784e',
-  './mobile.css?pwa=staging-9a0784e',
-  './mobile-snapshot-store.js?pwa=staging-9a0784e',
-  './mobile-incoming-snapshot.js?pwa=staging-9a0784e',
-  './tourists-public-config.js?pwa=staging-9a0784e',
-  './assets/jsqr-1.4.0.js?pwa=staging-9a0784e',
-  './manifest.webmanifest?pwa=staging-9a0784e',
-  './assets/icon-192.png?pwa=staging-9a0784e',
-  './assets/icon-512.png?pwa=staging-9a0784e',
-  './assets/icon-maskable-512.png?pwa=staging-9a0784e',
-  './assets/mobile-cover.png?pwa=staging-9a0784e',
-  './assets/mobile-clover.svg?pwa=staging-9a0784e',
+  './index.html?pwa=staging-847769b',
+  './mobile.js?pwa=staging-847769b',
+  './mobile.css?pwa=staging-847769b',
+  './mobile-snapshot-store.js?pwa=staging-847769b',
+  './mobile-incoming-snapshot.js?pwa=staging-847769b',
+  './tourists-public-config.js?pwa=staging-847769b',
+  './assets/jsqr-1.4.0.js?pwa=staging-847769b',
+  './manifest.webmanifest?pwa=staging-847769b',
+  './assets/icon-192.png?pwa=staging-847769b',
+  './assets/icon-512.png?pwa=staging-847769b',
+  './assets/icon-maskable-512.png?pwa=staging-847769b',
+  './assets/mobile-cover.png?pwa=staging-847769b',
+  './assets/mobile-clover.svg?pwa=staging-847769b',
 ];
 
 let selectedMobileDayKey = null;
@@ -801,7 +801,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-9a0784e';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-847769b';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -898,6 +898,12 @@ function mobileItineraryAdjacentDay(direction) {
   return days[index + direction] || null;
 }
 
+function mobileItineraryDaySelection(snapshot, dayKey) {
+  const days = mobileItineraryDaysFrom(snapshot);
+  const selectedDayIndex = days.findIndex((day) => day.day_key === dayKey);
+  return {days, selectedDayIndex, day: days[selectedDayIndex] || null};
+}
+
 function mobileItineraryIsFirstDay() {
   const days = mobileItineraryDaysFrom(currentMobileSnapshot);
   return days.length > 0 && days[0].day_key === selectedMobileDayKey;
@@ -937,6 +943,7 @@ function mobileSwipeHeader(snapshot, tab, selected) {
   if (dateNav && tab === 'memo') {
     dateNav.remove?.();
   } else if (dateNav && selected?.day) {
+    const selectedDayKey = selected.day.day_key;
     dateNav.replaceChildren();
     const currentButtons = mobileItineraryDayButtons;
     const swipeButtons = new Map();
@@ -947,7 +954,7 @@ function mobileSwipeHeader(snapshot, tab, selected) {
     appendMobileItineraryDaySlot(dateNav, selected.days[selected.selectedDayIndex + 1], snapshot);
     appendMobileItineraryWindowSlot(dateNav, selected.days, selected.selectedDayIndex, 1, snapshot);
     swipeButtons.forEach((button, dayKey) => {
-      if (dayKey === selectedMobileDayKey) button.setAttribute('aria-current', 'date');
+      if (dayKey === selectedDayKey) button.setAttribute('aria-current', 'date');
     });
     mobileItineraryDayButtons = currentButtons;
   }
@@ -1035,6 +1042,76 @@ function settleMobileTabSwipe(gesture, commit) {
   return true;
 }
 
+function mobileItineraryDaySwipeCandidate(gesture) {
+  if (!gesture || gesture.mode !== 'tab-or-itinerary-day' || gesture.direction !== 'vertical') return null;
+  const deltaY = gesture.currentY - (gesture.edgeStartY ?? gesture.startY);
+  let direction = 0;
+  if (gesture.atBottom && deltaY < 0) direction = 1;
+  if (gesture.atTop && deltaY > 0) direction = -1;
+  if (!direction) return null;
+  if (direction < 0 && mobileItineraryIsFirstDay()) return {kind: 'cover'};
+  const day = mobileItineraryAdjacentDay(direction);
+  return day ? {kind: 'day', day, direction} : null;
+}
+
+function mobileDaySwipePane(snapshot, tab, selected, state) {
+  const pane = mobileSwipePane(snapshot, tab, selected, state);
+  pane.className = 'mobile-itinerary mobile-day-swipe-pane';
+  return pane;
+}
+
+function beginMobileItineraryDaySwipe(gesture, target) {
+  if (gesture.daySwipe || target?.kind !== 'day' || !currentMobileSnapshot) return;
+  const sourceTab = mobileActiveTab;
+  const sourceState = mobileCaptureTabScroll(sourceTab);
+  const sourceSelected = mobileSelectedItineraryDay(currentMobileSnapshot);
+  const targetSelected = mobileItineraryDaySelection(currentMobileSnapshot, target.day.day_key);
+  if (!sourceSelected.day || !targetSelected.day) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'mobile-day-swipe-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  const sourcePane = mobileDaySwipePane(currentMobileSnapshot, sourceTab, sourceSelected, sourceState);
+  const targetPane = mobileDaySwipePane(currentMobileSnapshot, sourceTab, targetSelected,
+    {top: 0, dayKey: target.day.day_key});
+  const height = window.innerHeight || mobileItinerary.getBoundingClientRect?.().height || 852;
+  const targetStart = target.direction > 0 ? height : -height;
+  sourcePane.style.transform = 'translate3d(0, 0, 0)';
+  targetPane.style.transform = 'translate3d(0, ' + targetStart + 'px, 0)';
+  overlay.append(sourcePane, targetPane);
+  mobileItinerary.append(overlay);
+  gesture.daySwipe = {
+    overlay, sourcePane, targetPane, sourceTab, sourceState, target, height, targetStart,
+  };
+}
+
+function updateMobileItineraryDayPaneSwipe(gesture) {
+  const swipe = gesture?.daySwipe;
+  if (!swipe) return;
+  const deltaY = gesture.currentY - (gesture.edgeStartY ?? gesture.startY);
+  const distance = swipe.targetStart > 0 ? Math.min(0, deltaY) : Math.max(0, deltaY);
+  swipe.sourcePane.style.transform = 'translate3d(0, ' + distance + 'px, 0)';
+  swipe.targetPane.style.transform = 'translate3d(0, ' + (swipe.targetStart + distance) + 'px, 0)';
+}
+
+function settleMobileItineraryDaySwipe(gesture, commit) {
+  const swipe = gesture?.daySwipe;
+  if (!swipe) return false;
+  mobileTabSwipeSettling = true;
+  const sourceEnd = commit ? -swipe.targetStart : 0;
+  const targetEnd = commit ? 0 : swipe.targetStart;
+  [swipe.sourcePane, swipe.targetPane].forEach((pane) => {
+    pane.style.transition = 'transform ' + MOBILE_TAB_SWIPE_SETTLE_MS + 'ms ease-out';
+  });
+  swipe.sourcePane.style.transform = 'translate3d(0, ' + sourceEnd + 'px, 0)';
+  swipe.targetPane.style.transform = 'translate3d(0, ' + targetEnd + 'px, 0)';
+  window.setTimeout(() => {
+    swipe.overlay.remove?.();
+    mobileTabSwipeSettling = false;
+    if (commit) selectMobileItineraryDay(currentMobileSnapshot, swipe.target.day.day_key);
+  }, MOBILE_TAB_SWIPE_SETTLE_MS);
+  return true;
+}
+
 function startMobileItineraryDaySwipe(pointerId, clientX, clientY) {
   if (mobileTabSwipeSettling || mobileTripContent.hidden || mobileItinerary.hidden || !currentMobileSnapshot || !mobileCover.hidden) return false;
   const memoDetail = mobileActiveTab === 'memo'
@@ -1073,6 +1150,17 @@ function updateMobileItineraryDaySwipe(pointerId, clientX, clientY) {
       && Math.max(Math.abs(deltaX), Math.abs(deltaY)) >= MOBILE_ITINERARY_DAY_SWIPE_DIRECTION_LOCK_PX) {
     gesture.direction = Math.abs(deltaY) > Math.abs(deltaX) ? 'vertical' : 'horizontal';
   }
+  if (gesture.mode === 'tab-or-itinerary-day' && gesture.direction === 'vertical') {
+    const edge = mobileItineraryDayEdgeState();
+    if (!gesture.atBottom && deltaY < 0 && edge.atBottom) {
+      gesture.atBottom = true;
+      gesture.edgeStartY = clientY;
+    }
+    if (!gesture.atTop && deltaY > 0 && edge.atTop) {
+      gesture.atTop = true;
+      gesture.edgeStartY = clientY;
+    }
+  }
   return gesture;
 }
 
@@ -1087,14 +1175,10 @@ function mobileItineraryDaySwipeTarget(gesture) {
     const tab = mobileHorizontalTabTarget(mobileActiveTab, gesture.currentX - gesture.startX);
     return tab ? {kind: 'tab', tab} : null;
   }
-  if (gesture.mode !== 'tab-or-itinerary-day' || gesture.direction !== 'vertical') return null;
-  const deltaY = gesture.currentY - gesture.startY;
-  let direction = 0;
-  if (gesture.atBottom && deltaY <= -MOBILE_ITINERARY_DAY_SWIPE_THRESHOLD_PX) direction = 1;
-  if (gesture.atTop && deltaY >= MOBILE_ITINERARY_DAY_SWIPE_THRESHOLD_PX) direction = -1;
-  if (!direction) return null;
-  if (direction < 0 && mobileItineraryIsFirstDay()) return {kind: 'cover'};
-  return mobileItineraryAdjacentDay(direction);
+  const candidate = mobileItineraryDaySwipeCandidate(gesture);
+  if (!candidate) return null;
+  const distance = Math.abs(gesture.currentY - (gesture.edgeStartY ?? gesture.startY));
+  return distance >= MOBILE_ITINERARY_DAY_SWIPE_THRESHOLD_PX ? candidate : null;
 }
 
 function finishMobileItineraryDaySwipe(pointerId, clientX, clientY, cancelled = false) {
@@ -1104,6 +1188,8 @@ function finishMobileItineraryDaySwipe(pointerId, clientX, clientY, cancelled = 
   mobileItineraryDaySwipe = null;
   if (gesture.tabSwipe) return settleMobileTabSwipe(gesture, !cancelled && target?.kind === 'tab'
     && target.tab === gesture.tabSwipe.targetTab);
+  if (gesture.daySwipe) return settleMobileItineraryDaySwipe(gesture,
+    !cancelled && target?.kind === 'day' && target.day.day_key === gesture.daySwipe.target.day.day_key);
   if (cancelled || !target) return false;
   if (target.kind === 'tab') {
     selectMobileTab(target.tab);
@@ -1151,6 +1237,13 @@ function moveMobileItineraryTouchSwipe(event) {
       beginMobileTabSwipe(updated, previewTab);
       updateMobileTabSwipe(updated);
     }
+    event.preventDefault();
+    return;
+  }
+  const candidate = mobileItineraryDaySwipeCandidate(updated);
+  if (candidate?.kind === 'day') {
+    beginMobileItineraryDaySwipe(updated, candidate);
+    updateMobileItineraryDayPaneSwipe(updated);
     event.preventDefault();
     return;
   }
@@ -1944,7 +2037,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v84）' : 'あり（v84確認不可）';
+    ? 'あり（v85）' : 'あり（v85確認不可）';
 }
 
 async function showPwaDiagnostics() {
