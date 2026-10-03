@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-3835b7d';
+const PWA_SHELL_VERSION = 'staging-dd05d49';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-3835b7d',
-  './mobile.js?pwa=staging-3835b7d',
-  './mobile.css?pwa=staging-3835b7d',
-  './mobile-snapshot-store.js?pwa=staging-3835b7d',
-  './mobile-incoming-snapshot.js?pwa=staging-3835b7d',
-  './tourists-public-config.js?pwa=staging-3835b7d',
-  './assets/jsqr-1.4.0.js?pwa=staging-3835b7d',
-  './manifest.webmanifest?pwa=staging-3835b7d',
-  './assets/icon-192.png?pwa=staging-3835b7d',
-  './assets/icon-512.png?pwa=staging-3835b7d',
-  './assets/icon-maskable-512.png?pwa=staging-3835b7d',
-  './assets/mobile-cover.png?pwa=staging-3835b7d',
-  './assets/mobile-clover.svg?pwa=staging-3835b7d',
+  './index.html?pwa=staging-dd05d49',
+  './mobile.js?pwa=staging-dd05d49',
+  './mobile.css?pwa=staging-dd05d49',
+  './mobile-snapshot-store.js?pwa=staging-dd05d49',
+  './mobile-incoming-snapshot.js?pwa=staging-dd05d49',
+  './tourists-public-config.js?pwa=staging-dd05d49',
+  './assets/jsqr-1.4.0.js?pwa=staging-dd05d49',
+  './manifest.webmanifest?pwa=staging-dd05d49',
+  './assets/icon-192.png?pwa=staging-dd05d49',
+  './assets/icon-512.png?pwa=staging-dd05d49',
+  './assets/icon-maskable-512.png?pwa=staging-dd05d49',
+  './assets/mobile-cover.png?pwa=staging-dd05d49',
+  './assets/mobile-clover.svg?pwa=staging-dd05d49',
 ];
 
 let selectedMobileDayKey = null;
@@ -801,7 +801,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-3835b7d';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-dd05d49';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -950,7 +950,7 @@ function mobileSwipeHeader(snapshot, tab, selected) {
   return header;
 }
 
-function mobileSwipePane(snapshot, tab, selected, state, {preserveViewport = false} = {}) {
+function mobileSwipePane(snapshot, tab, selected) {
   const pane = document.createElement('section');
   pane.className = 'mobile-itinerary mobile-tab-swipe-pane';
   pane.setAttribute('aria-label', mobileTabAriaLabel(tab));
@@ -961,8 +961,12 @@ function mobileSwipePane(snapshot, tab, selected, state, {preserveViewport = fal
   const body = renderMobileTabBody(snapshot, tab, selected);
   if (body) days.append(body);
   pane.append(days);
+  return pane;
+}
+
+function restoreMobileSwipePaneViewport(pane, tab, state, {alignCard = false} = {}) {
   pane.scrollTop = Math.max(0, Number(state?.top) || 0);
-  if (!preserveViewport && Number.isInteger(state?.itemIndex)) {
+  if (alignCard && Number.isInteger(state?.itemIndex)) {
     const card = pane.querySelector?.(mobileFormalCardSelector(tab)
       + '[data-mobile-item-index="' + state.itemIndex + '"]');
     const rect = card?.getBoundingClientRect?.();
@@ -970,7 +974,6 @@ function mobileSwipePane(snapshot, tab, selected, state, {preserveViewport = fal
       pane.scrollTop += rect.top - mobileHeaderBottom(pane) - state.offset;
     }
   }
-  return pane;
 }
 
 function beginMobileTabSwipe(gesture, targetTab) {
@@ -985,14 +988,16 @@ function beginMobileTabSwipe(gesture, targetTab) {
   const overlay = document.createElement('div');
   overlay.className = 'mobile-tab-swipe-overlay';
   overlay.setAttribute('aria-hidden', 'true');
-  const sourcePane = mobileSwipePane(currentMobileSnapshot, sourceTab, selected, sourceState);
-  const targetPane = mobileSwipePane(currentMobileSnapshot, targetTab, selected, targetState);
+  const sourcePane = mobileSwipePane(currentMobileSnapshot, sourceTab, selected);
+  const targetPane = mobileSwipePane(currentMobileSnapshot, targetTab, selected);
   const width = window.innerWidth || mobileItinerary.getBoundingClientRect?.().width || 393;
   const targetStart = targetTab === 'info' || (sourceTab === 'memo' && targetTab === 'itinerary') ? -width : width;
   sourcePane.style.transform = 'translate3d(0, 0, 0)';
   targetPane.style.transform = 'translate3d(' + targetStart + 'px, 0, 0)';
   overlay.append(sourcePane, targetPane);
   mobileItinerary.append(overlay);
+  restoreMobileSwipePaneViewport(sourcePane, sourceTab, sourceState);
+  restoreMobileSwipePaneViewport(targetPane, targetTab, targetState, {alignCard: true});
   gesture.tabSwipe = {overlay, sourcePane, targetPane, sourceTab, targetTab, sourceState, targetState, width, targetStart};
 }
 
@@ -1043,8 +1048,8 @@ function mobileItineraryDaySwipeCandidate(gesture) {
   return day ? {kind: 'day', day, direction} : null;
 }
 
-function mobileDaySwipePane(snapshot, tab, selected, state) {
-  const pane = mobileSwipePane(snapshot, tab, selected, state, {preserveViewport: true});
+function mobileDaySwipePane(snapshot, tab, selected) {
+  const pane = mobileSwipePane(snapshot, tab, selected);
   pane.className = 'mobile-itinerary mobile-day-swipe-pane';
   return pane;
 }
@@ -1059,15 +1064,16 @@ function beginMobileItineraryDaySwipe(gesture, target) {
   const overlay = document.createElement('div');
   overlay.className = 'mobile-day-swipe-overlay';
   overlay.setAttribute('aria-hidden', 'true');
-  const sourcePane = mobileDaySwipePane(currentMobileSnapshot, sourceTab, sourceSelected, sourceState);
-  const targetPane = mobileDaySwipePane(currentMobileSnapshot, sourceTab, targetSelected,
-    {top: 0, dayKey: target.day.day_key});
+  const sourcePane = mobileDaySwipePane(currentMobileSnapshot, sourceTab, sourceSelected);
+  const targetPane = mobileDaySwipePane(currentMobileSnapshot, sourceTab, targetSelected);
   const height = window.innerHeight || mobileItinerary.getBoundingClientRect?.().height || 852;
   const targetStart = target.direction > 0 ? height : -height;
   sourcePane.style.transform = 'translate3d(0, 0, 0)';
   targetPane.style.transform = 'translate3d(0, ' + targetStart + 'px, 0)';
   overlay.append(sourcePane, targetPane);
   mobileItinerary.append(overlay);
+  restoreMobileSwipePaneViewport(sourcePane, sourceTab, sourceState);
+  restoreMobileSwipePaneViewport(targetPane, sourceTab, {top: 0, dayKey: target.day.day_key});
   gesture.daySwipe = {
     overlay, sourcePane, targetPane, sourceTab, sourceState, target, height, targetStart,
   };
@@ -2026,7 +2032,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v87）' : 'あり（v87確認不可）';
+    ? 'あり（v88）' : 'あり（v88確認不可）';
 }
 
 async function showPwaDiagnostics() {
