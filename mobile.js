@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-dd05d49';
+const PWA_SHELL_VERSION = 'staging-1e37543';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-dd05d49',
-  './mobile.js?pwa=staging-dd05d49',
-  './mobile.css?pwa=staging-dd05d49',
-  './mobile-snapshot-store.js?pwa=staging-dd05d49',
-  './mobile-incoming-snapshot.js?pwa=staging-dd05d49',
-  './tourists-public-config.js?pwa=staging-dd05d49',
-  './assets/jsqr-1.4.0.js?pwa=staging-dd05d49',
-  './manifest.webmanifest?pwa=staging-dd05d49',
-  './assets/icon-192.png?pwa=staging-dd05d49',
-  './assets/icon-512.png?pwa=staging-dd05d49',
-  './assets/icon-maskable-512.png?pwa=staging-dd05d49',
-  './assets/mobile-cover.png?pwa=staging-dd05d49',
-  './assets/mobile-clover.svg?pwa=staging-dd05d49',
+  './index.html?pwa=staging-1e37543',
+  './mobile.js?pwa=staging-1e37543',
+  './mobile.css?pwa=staging-1e37543',
+  './mobile-snapshot-store.js?pwa=staging-1e37543',
+  './mobile-incoming-snapshot.js?pwa=staging-1e37543',
+  './tourists-public-config.js?pwa=staging-1e37543',
+  './assets/jsqr-1.4.0.js?pwa=staging-1e37543',
+  './manifest.webmanifest?pwa=staging-1e37543',
+  './assets/icon-192.png?pwa=staging-1e37543',
+  './assets/icon-512.png?pwa=staging-1e37543',
+  './assets/icon-maskable-512.png?pwa=staging-1e37543',
+  './assets/mobile-cover.png?pwa=staging-1e37543',
+  './assets/mobile-clover.svg?pwa=staging-1e37543',
 ];
 
 let selectedMobileDayKey = null;
@@ -647,15 +647,23 @@ function mobileHeaderBottom(root = mobileItinerary) {
   return typeof bottom === 'number' ? bottom : 0;
 }
 
-function mobileCaptureTabScroll(tab = mobileActiveTab) {
+function mobileCaptureTabScroll(tab = mobileActiveTab, gestureY = null) {
   const top = mobileDocumentScrollTop();
   if (tab === 'memo') return {top, memoPageKey: selectedMobileMemoPageKey || null};
   const cards = Array.from(mobileItineraryDays.querySelectorAll?.(mobileFormalCardSelector(tab)) || []);
   const headerBottom = mobileHeaderBottom();
-  const card = cards.find((entry) => {
+  const firstVisibleCard = cards.find((entry) => {
     const bottom = entry.getBoundingClientRect?.().bottom;
     return typeof bottom === 'number' && bottom > headerBottom;
   }) || cards[0] || null;
+  const card = Number.isFinite(gestureY) ? cards.reduce((nearest, entry) => {
+    const rect = entry.getBoundingClientRect?.();
+    if (!rect || typeof rect.top !== 'number' || typeof rect.bottom !== 'number') return nearest;
+    const topEdge = Math.max(headerBottom, rect.top);
+    const distance = gestureY < topEdge ? topEdge - gestureY
+      : gestureY > rect.bottom ? gestureY - rect.bottom : 0;
+    return !nearest || distance < nearest.distance ? {entry, distance} : nearest;
+  }, null)?.entry || firstVisibleCard : firstVisibleCard;
   const rect = card?.getBoundingClientRect?.();
   const itemIndex = Number(card?.getAttribute?.('data-mobile-item-index'));
   return {
@@ -686,7 +694,8 @@ function mobileMappedTabScroll(sourceTab, targetTab, sourceState) {
     top: sourceState.top,
     dayKey: selectedMobileDayKey,
     itemIndex: sourceState.itemIndex,
-    offset: sourceState.offset,
+    offset: 0,
+    alignCardAtBodyStart: true,
   };
 }
 
@@ -704,7 +713,8 @@ function restoreMobileTabScroll(tab, state) {
   );
   const rect = card?.getBoundingClientRect?.();
   if (!rect || typeof rect.top !== 'number') return;
-  setMobileDocumentScrollTop(mobileDocumentScrollTop() + rect.top - mobileHeaderBottom() - state.offset);
+  const offset = state.alignCardAtBodyStart ? 0 : state.offset;
+  setMobileDocumentScrollTop(mobileDocumentScrollTop() + rect.top - mobileHeaderBottom() - offset);
 }
 
 function resetMobileTabScrollPositions() {
@@ -801,7 +811,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-dd05d49';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-1e37543';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -971,7 +981,8 @@ function restoreMobileSwipePaneViewport(pane, tab, state, {alignCard = false} = 
       + '[data-mobile-item-index="' + state.itemIndex + '"]');
     const rect = card?.getBoundingClientRect?.();
     if (rect && typeof rect.top === 'number') {
-      pane.scrollTop += rect.top - mobileHeaderBottom(pane) - state.offset;
+      const offset = state.alignCardAtBodyStart ? 0 : state.offset;
+      pane.scrollTop += rect.top - mobileHeaderBottom(pane) - offset;
     }
   }
 }
@@ -979,10 +990,10 @@ function restoreMobileSwipePaneViewport(pane, tab, state, {alignCard = false} = 
 function beginMobileTabSwipe(gesture, targetTab) {
   if (gesture.tabSwipe || !currentMobileSnapshot || !targetTab) return;
   const sourceTab = mobileActiveTab;
-  const sourceState = mobileCaptureTabScroll(sourceTab);
+  const sourceState = mobileCaptureTabScroll(sourceTab, gesture.startY);
   saveMobileTabScroll(sourceTab, sourceState);
-  const targetState = savedMobileTabScroll(targetTab)
-    || mobileMappedTabScroll(sourceTab, targetTab, sourceState)
+  const targetState = mobileMappedTabScroll(sourceTab, targetTab, sourceState)
+    || savedMobileTabScroll(targetTab)
     || {top: 0, dayKey: selectedMobileDayKey};
   const selected = mobileSelectedItineraryDay(currentMobileSnapshot);
   const overlay = document.createElement('div');
@@ -1054,6 +1065,16 @@ function mobileDaySwipePane(snapshot, tab, selected) {
   return pane;
 }
 
+function restoreMobileDaySwipeTargetBoundary(pane, boundary) {
+  if (boundary === 'bottom') {
+    const scrollHeight = Math.max(0, Number(pane.scrollHeight) || 0);
+    const clientHeight = Math.max(0, Number(pane.clientHeight) || 0);
+    pane.scrollTop = Math.max(0, scrollHeight - clientHeight);
+    return;
+  }
+  pane.scrollTop = 0;
+}
+
 function beginMobileItineraryDaySwipe(gesture, target) {
   if (gesture.daySwipe || target?.kind !== 'day' || !currentMobileSnapshot) return;
   const sourceTab = mobileActiveTab;
@@ -1073,9 +1094,10 @@ function beginMobileItineraryDaySwipe(gesture, target) {
   overlay.append(sourcePane, targetPane);
   mobileItinerary.append(overlay);
   restoreMobileSwipePaneViewport(sourcePane, sourceTab, sourceState);
-  restoreMobileSwipePaneViewport(targetPane, sourceTab, {top: 0, dayKey: target.day.day_key});
+  const targetBoundary = target.direction > 0 ? 'top' : 'bottom';
+  restoreMobileDaySwipeTargetBoundary(targetPane, targetBoundary);
   gesture.daySwipe = {
-    overlay, sourcePane, targetPane, sourceTab, sourceState, target, height, targetStart,
+    overlay, sourcePane, targetPane, sourceTab, sourceState, target, targetBoundary, height, targetStart,
   };
 }
 
@@ -2032,7 +2054,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v88）' : 'あり（v88確認不可）';
+    ? 'あり（v89）' : 'あり（v89確認不可）';
 }
 
 async function showPwaDiagnostics() {
