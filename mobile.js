@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-1e37543';
+const PWA_SHELL_VERSION = 'staging-3b57ed5';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-1e37543',
-  './mobile.js?pwa=staging-1e37543',
-  './mobile.css?pwa=staging-1e37543',
-  './mobile-snapshot-store.js?pwa=staging-1e37543',
-  './mobile-incoming-snapshot.js?pwa=staging-1e37543',
-  './tourists-public-config.js?pwa=staging-1e37543',
-  './assets/jsqr-1.4.0.js?pwa=staging-1e37543',
-  './manifest.webmanifest?pwa=staging-1e37543',
-  './assets/icon-192.png?pwa=staging-1e37543',
-  './assets/icon-512.png?pwa=staging-1e37543',
-  './assets/icon-maskable-512.png?pwa=staging-1e37543',
-  './assets/mobile-cover.png?pwa=staging-1e37543',
-  './assets/mobile-clover.svg?pwa=staging-1e37543',
+  './index.html?pwa=staging-3b57ed5',
+  './mobile.js?pwa=staging-3b57ed5',
+  './mobile.css?pwa=staging-3b57ed5',
+  './mobile-snapshot-store.js?pwa=staging-3b57ed5',
+  './mobile-incoming-snapshot.js?pwa=staging-3b57ed5',
+  './tourists-public-config.js?pwa=staging-3b57ed5',
+  './assets/jsqr-1.4.0.js?pwa=staging-3b57ed5',
+  './manifest.webmanifest?pwa=staging-3b57ed5',
+  './assets/icon-192.png?pwa=staging-3b57ed5',
+  './assets/icon-512.png?pwa=staging-3b57ed5',
+  './assets/icon-maskable-512.png?pwa=staging-3b57ed5',
+  './assets/mobile-cover.png?pwa=staging-3b57ed5',
+  './assets/mobile-clover.svg?pwa=staging-3b57ed5',
 ];
 
 let selectedMobileDayKey = null;
@@ -811,7 +811,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-1e37543';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-3b57ed5';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -866,8 +866,12 @@ function selectMobileItineraryDay(snapshot, dayKey) {
   mobileTabScrollPositions.itinerary.delete(dayKey);
   mobileTabScrollPositions.info.delete(dayKey);
   renderMobileItinerary(snapshot);
+  // 日付セクション自身のscroll-margin-topでsticky headerの下へ見出しを着地させる。
   // previewは選択日のDOMだけを差し替えるため、iframe外まで届き得るscrollIntoViewは不要。
-  if (!mobilePreview.enabled) mobileItineraryDays.scrollIntoView?.({behavior: 'auto', block: 'start'});
+  if (!mobilePreview.enabled) {
+    const selectedDay = mobileItineraryDays.firstElementChild || mobileItineraryDays.children?.[0];
+    (selectedDay || mobileItineraryDays).scrollIntoView?.({behavior: 'auto', block: 'start'});
+  }
 }
 
 function mobileItineraryScrollState() {
@@ -2054,7 +2058,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v89）' : 'あり（v89確認不可）';
+    ? 'あり（v90）' : 'あり（v90確認不可）';
 }
 
 async function showPwaDiagnostics() {
