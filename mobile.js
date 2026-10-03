@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-7736105';
+const PWA_SHELL_VERSION = 'staging-571e9df';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-7736105',
-  './mobile.js?pwa=staging-7736105',
-  './mobile.css?pwa=staging-7736105',
-  './mobile-snapshot-store.js?pwa=staging-7736105',
-  './mobile-incoming-snapshot.js?pwa=staging-7736105',
-  './tourists-public-config.js?pwa=staging-7736105',
-  './assets/jsqr-1.4.0.js?pwa=staging-7736105',
-  './manifest.webmanifest?pwa=staging-7736105',
-  './assets/icon-192.png?pwa=staging-7736105',
-  './assets/icon-512.png?pwa=staging-7736105',
-  './assets/icon-maskable-512.png?pwa=staging-7736105',
-  './assets/mobile-cover.png?pwa=staging-7736105',
-  './assets/mobile-clover.svg?pwa=staging-7736105',
+  './index.html?pwa=staging-571e9df',
+  './mobile.js?pwa=staging-571e9df',
+  './mobile.css?pwa=staging-571e9df',
+  './mobile-snapshot-store.js?pwa=staging-571e9df',
+  './mobile-incoming-snapshot.js?pwa=staging-571e9df',
+  './tourists-public-config.js?pwa=staging-571e9df',
+  './assets/jsqr-1.4.0.js?pwa=staging-571e9df',
+  './manifest.webmanifest?pwa=staging-571e9df',
+  './assets/icon-192.png?pwa=staging-571e9df',
+  './assets/icon-512.png?pwa=staging-571e9df',
+  './assets/icon-maskable-512.png?pwa=staging-571e9df',
+  './assets/mobile-cover.png?pwa=staging-571e9df',
+  './assets/mobile-clover.svg?pwa=staging-571e9df',
 ];
 
 let selectedMobileDayKey = null;
@@ -289,12 +289,17 @@ function appendMobileItineraryLinks(parent, item) {
   if (links.childElementCount) parent.append(links);
 }
 
+function mobileItemTime(value) {
+  const time = typeof value === 'string' ? value.trim() : '';
+  return /^\d{2}:\d{2}(?::\d{2})?$/.test(time) ? time.slice(0, 5) : '';
+}
+
 function mobileItemStartTime(item) {
-  return typeof item.start_time === 'string' && item.start_time.trim() ? item.start_time.trim() : '';
+  return mobileItemTime(item.start_time);
 }
 
 function mobileItemEndTime(item) {
-  return typeof item.end_time === 'string' && item.end_time.trim() ? item.end_time.trim() : '';
+  return mobileItemTime(item.end_time);
 }
 
 function mobileItemHeading(item) {
@@ -305,11 +310,17 @@ function mobileItemHeading(item) {
   return item.title;
 }
 
-function mobileInfoTimeRange(item) {
+function mobileItemTimeLabel(item) {
   const start = mobileItemStartTime(item);
   const end = mobileItemEndTime(item);
-  if (start && end) return start + '－' + end;
-  return start || end;
+  if (start && end) return start + '–' + end;
+  if (start) return start;
+  if (end) return end + 'まで';
+  return '';
+}
+
+function mobileInfoTimeRange(item) {
+  return mobileItemTimeLabel(item);
 }
 
 function appendMobileItineraryLine(parent, item, time, lineClassName, {reserveTimeColumn = false} = {}) {
@@ -338,22 +349,18 @@ function renderMobileItineraryCard(item, {
   card.className = 'mobile-itinerary-card mobile-itinerary-card-' + kind + ' ' + (isTransport
     ? 'mobile-itinerary-card-transport' : 'mobile-itinerary-card-stay');
   if (kind === 'formal' && Number.isInteger(itemIndex)) card.setAttribute('data-mobile-item-index', String(itemIndex));
+  const time = showTime ? mobileItemTimeLabel(item) : '';
+  const lineOptions = {reserveTimeColumn: reserveTimeColumn || showTime};
   if (!isTransport) {
-    appendMobileItineraryLine(card, item, showTime ? mobileItemStartTime(item) : '', 'mobile-itinerary-stay-line', {
-      reserveTimeColumn,
-    });
+    appendMobileItineraryLine(card, item, time, 'mobile-itinerary-stay-line', lineOptions);
     return card;
   }
 
-  appendMobileItineraryLine(card, item, showTime ? mobileItemStartTime(item) : '', 'mobile-itinerary-movement-line', {
-    reserveTimeColumn,
-  });
+  appendMobileItineraryLine(card, item, time, 'mobile-itinerary-movement-line', lineOptions);
   const secondLine = document.createElement('div');
   secondLine.className = 'mobile-itinerary-movement-second-line';
   const transport = typeof item.transport_mode === 'string' ? item.transport_mode.trim() : '';
-  const arrival = mobileItemEndTime(item);
   if (transport) appendMobileText(secondLine, 'p', 'mobile-itinerary-card-transport-mode', transport);
-  if (arrival) appendMobileText(secondLine, 'p', 'mobile-itinerary-card-arrival', arrival + '着');
   if (secondLine.childElementCount) card.append(secondLine);
   return card;
 }
@@ -757,7 +764,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-7736105';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-571e9df';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);

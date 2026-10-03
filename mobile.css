@@ -30,7 +30,7 @@ body.mobile-itinerary-active #mobile-home-message { display: none; }
 body.mobile-cover-active .mobile-home-card { position: relative; width: 100%; min-height: 100svh; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 body.mobile-cover-active .mobile-trip-content { min-height: 100svh; padding: 28px 24px; background: var(--mobile-paper); }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-7736105') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-571e9df') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -168,11 +168,12 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
 .mobile-itinerary-day-summary { margin: .35rem 0 .85rem; overflow: hidden; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); text-overflow: ellipsis; white-space: nowrap; }
 .mobile-itinerary-card { margin: 0; padding: .8rem 0; border: 0; color: var(--mobile-ink); }
 .mobile-itinerary-card-transport { background: var(--mobile-paper); background-clip: content-box; }
-.mobile-itinerary-stay-line, .mobile-itinerary-movement-line { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: .55rem; align-items: start; }
+.mobile-itinerary-card { --mobile-itinerary-time-column: 6.2rem; }
+.mobile-itinerary-stay-line, .mobile-itinerary-movement-line { display: grid; grid-template-columns: var(--mobile-itinerary-time-column) minmax(0, 1fr); gap: .55rem; align-items: start; }
 .mobile-itinerary-card-time { margin: 0; color: var(--mobile-muted); font-size: var(--mobile-font-primary); font-variant-numeric: tabular-nums; font-weight: 500; line-height: 1.5; white-space: nowrap; }
 .mobile-itinerary-card-content { display: flex; min-width: 0; flex-wrap: wrap; align-items: flex-start; gap: .1rem .35rem; font-size: var(--mobile-font-primary); line-height: 1.5; }
 .mobile-itinerary-card-title { margin: 0; color: var(--mobile-ink); font-size: var(--mobile-font-primary); font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
-.mobile-itinerary-movement-second-line { display: flex; min-height: 1.35rem; margin: .1rem 0 0 calc(3.4rem + .55rem); gap: .5rem; align-items: baseline; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); }
+.mobile-itinerary-movement-second-line { display: flex; min-height: 1.35rem; margin: .1rem 0 0 calc(var(--mobile-itinerary-time-column) + .55rem); gap: .5rem; align-items: baseline; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); }
 .mobile-itinerary-card-transport-mode, .mobile-itinerary-card-arrival { margin: 0; }
 .mobile-itinerary-card-arrival { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .mobile-itinerary-links { display: inline-flex; flex-wrap: wrap; align-self: flex-start; height: 1.5em; align-items: center; gap: .125rem; }
