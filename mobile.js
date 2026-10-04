@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-fd03447';
+const PWA_SHELL_VERSION = 'staging-8ed4f51';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-fd03447',
-  './mobile.js?pwa=staging-fd03447',
-  './mobile.css?pwa=staging-fd03447',
-  './mobile-snapshot-store.js?pwa=staging-fd03447',
-  './mobile-incoming-snapshot.js?pwa=staging-fd03447',
-  './tourists-public-config.js?pwa=staging-fd03447',
-  './assets/jsqr-1.4.0.js?pwa=staging-fd03447',
-  './manifest.webmanifest?pwa=staging-fd03447',
-  './assets/icon-192.png?pwa=staging-fd03447',
-  './assets/icon-512.png?pwa=staging-fd03447',
-  './assets/icon-maskable-512.png?pwa=staging-fd03447',
-  './assets/mobile-cover.png?pwa=staging-fd03447',
-  './assets/mobile-clover.svg?pwa=staging-fd03447',
+  './index.html?pwa=staging-8ed4f51',
+  './mobile.js?pwa=staging-8ed4f51',
+  './mobile.css?pwa=staging-8ed4f51',
+  './mobile-snapshot-store.js?pwa=staging-8ed4f51',
+  './mobile-incoming-snapshot.js?pwa=staging-8ed4f51',
+  './tourists-public-config.js?pwa=staging-8ed4f51',
+  './assets/jsqr-1.4.0.js?pwa=staging-8ed4f51',
+  './manifest.webmanifest?pwa=staging-8ed4f51',
+  './assets/icon-192.png?pwa=staging-8ed4f51',
+  './assets/icon-512.png?pwa=staging-8ed4f51',
+  './assets/icon-maskable-512.png?pwa=staging-8ed4f51',
+  './assets/mobile-cover.png?pwa=staging-8ed4f51',
+  './assets/mobile-clover.svg?pwa=staging-8ed4f51',
 ];
 
 let selectedMobileDayKey = null;
@@ -56,13 +56,7 @@ let selectedMobileMemoPageKey = null;
 const MOBILE_COVER_SWIPE_THRESHOLD_RATIO = 0.10;
 const MOBILE_COVER_DIRECTION_LOCK_PX = 8;
 const MOBILE_COVER_SETTLE_MS = 180;
-const MOBILE_COVER_DOUBLE_TAP_WINDOW_MS = 400;
-const MOBILE_COVER_DOUBLE_TAP_DISTANCE_PX = 24;
-const MOBILE_COVER_DOUBLE_TAP_MOVE_TOLERANCE_PX = 24;
 let mobileCoverPointer = null;
-let mobileCoverLastTap = null;
-let mobileCoverTouchStart = null;
-let mobileCoverMultiTouch = false;
 let mobileCoverSettleTimer = null;
 let mobileCoverLeaving = false;
 let savedTripCrossfadeTimer = null;
@@ -817,7 +811,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-fd03447';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-8ed4f51';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1612,83 +1606,11 @@ function finishMobileCoverSwipe(event, cancelled = false) {
   }
 }
 
-function resetMobileCoverDoubleTapFallback() {
-  mobileCoverLastTap = null;
-  mobileCoverTouchStart = null;
-  mobileCoverMultiTouch = false;
-}
-
-function trackMobileCoverTouchStart(event) {
-  if (event.touches?.length !== 1) {
-    mobileCoverMultiTouch = true;
-    mobileCoverLastTap = null;
-    mobileCoverTouchStart = null;
-    return;
-  }
-  const touch = event.touches[0];
-  if (event.target?.closest?.('.mobile-cover-brand')) {
-    resetMobileCoverDoubleTapFallback();
-    return;
-  }
-  const now = Date.now();
-  const previous = mobileCoverLastTap;
-  const dx = previous ? touch.clientX - previous.x : 0;
-  const dy = previous ? touch.clientY - previous.y : 0;
-  const isSecondSingleFingerTap = previous
-    && !mobileCoverMultiTouch
-    && now - previous.at <= MOBILE_COVER_DOUBLE_TAP_WINDOW_MS
-    && Math.hypot(dx, dy) <= MOBILE_COVER_DOUBLE_TAP_DISTANCE_PX;
-  mobileCoverTouchStart = {
-    x: touch.clientX,
-    y: touch.clientY,
-    exceedsDoubleTapTolerance: false,
-    suppressesLegacyDoubleTapZoom: Boolean(isSecondSingleFingerTap),
-  };
-  mobileCoverLastTap = null;
-  if (isSecondSingleFingerTap && event.cancelable !== false) {
-    // Older iOS WebKit can commit smart zoom before a second touchend handler runs.
-    // Suppress only this second, non-interactive, single-finger cover tap.
-    event.preventDefault?.();
-  }
-}
-
-function trackMobileCoverTouchMove(event) {
-  if (event.touches?.length !== 1) {
-    mobileCoverMultiTouch = true;
-    return;
-  }
-  const touch = event.touches[0];
-  const start = mobileCoverTouchStart;
-  if (start && Math.hypot(touch.clientX - start.x, touch.clientY - start.y) >= MOBILE_COVER_DOUBLE_TAP_MOVE_TOLERANCE_PX) {
-    start.exceedsDoubleTapTolerance = true;
-  }
-}
-
-function recordMobileCoverTouchEnd(event) {
-  if (event.touches?.length > 0) return;
-  const touch = event.changedTouches?.[0];
-  const start = mobileCoverTouchStart;
-  if (mobileCoverMultiTouch
-      || start?.exceedsDoubleTapTolerance
-      || start?.suppressesLegacyDoubleTapZoom
-      || event.target?.closest?.('.mobile-cover-brand')
-      || !touch) {
-    resetMobileCoverDoubleTapFallback();
-    return;
-  }
-  mobileCoverTouchStart = null;
-  mobileCoverLastTap = {at: Date.now(), x: touch.clientX, y: touch.clientY};
-}
-
 function installMobileCoverSwipe() {
   mobileCover.addEventListener('pointerdown', startMobileCoverSwipe);
   mobileCover.addEventListener('pointermove', moveMobileCoverSwipe);
   mobileCover.addEventListener('pointerup', finishMobileCoverSwipe);
   mobileCover.addEventListener('pointercancel', (event) => finishMobileCoverSwipe(event, true));
-  mobileCover.addEventListener('touchstart', trackMobileCoverTouchStart, {passive: false});
-  mobileCover.addEventListener('touchmove', trackMobileCoverTouchMove, {passive: true});
-  mobileCover.addEventListener('touchend', recordMobileCoverTouchEnd, {passive: true});
-  mobileCover.addEventListener('touchcancel', resetMobileCoverDoubleTapFallback, {passive: true});
 }
 
 function toggleMobileElementClass(element, className, enabled) {
@@ -1729,7 +1651,6 @@ function showMobileCover(snapshot, {preservePreviewShiftLatch = false} = {}) {
   clearMobileCoverSettleTimer();
   clearSavedTripCrossfade();
   mobileCoverPointer = null;
-  resetMobileCoverDoubleTapFallback();
   mobileItineraryDaySwipe = null;
   if (!preservePreviewShiftLatch) resetMobilePreviewShiftLatch();
   mobileCoverLeaving = false;
@@ -1747,7 +1668,6 @@ function showMobileCover(snapshot, {preservePreviewShiftLatch = false} = {}) {
 function hideMobileCover() {
   clearMobileCoverSettleTimer();
   mobileCoverPointer = null;
-  resetMobileCoverDoubleTapFallback();
   mobileCoverLeaving = false;
   mobileCover.style.transform = '';
   mobileCover.style.transition = '';
@@ -2143,7 +2063,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v98）' : 'あり（v98確認不可）';
+    ? 'あり（v99）' : 'あり（v99確認不可）';
 }
 
 async function showPwaDiagnostics() {
