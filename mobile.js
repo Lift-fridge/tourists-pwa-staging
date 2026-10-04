@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-e508e8d';
+const PWA_SHELL_VERSION = 'staging-55ae978';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-e508e8d',
-  './mobile.js?pwa=staging-e508e8d',
-  './mobile.css?pwa=staging-e508e8d',
-  './mobile-snapshot-store.js?pwa=staging-e508e8d',
-  './mobile-incoming-snapshot.js?pwa=staging-e508e8d',
-  './tourists-public-config.js?pwa=staging-e508e8d',
-  './assets/jsqr-1.4.0.js?pwa=staging-e508e8d',
-  './manifest.webmanifest?pwa=staging-e508e8d',
-  './assets/icon-192.png?pwa=staging-e508e8d',
-  './assets/icon-512.png?pwa=staging-e508e8d',
-  './assets/icon-maskable-512.png?pwa=staging-e508e8d',
-  './assets/mobile-cover.png?pwa=staging-e508e8d',
-  './assets/mobile-clover.svg?pwa=staging-e508e8d',
+  './index.html?pwa=staging-55ae978',
+  './mobile.js?pwa=staging-55ae978',
+  './mobile.css?pwa=staging-55ae978',
+  './mobile-snapshot-store.js?pwa=staging-55ae978',
+  './mobile-incoming-snapshot.js?pwa=staging-55ae978',
+  './tourists-public-config.js?pwa=staging-55ae978',
+  './assets/jsqr-1.4.0.js?pwa=staging-55ae978',
+  './manifest.webmanifest?pwa=staging-55ae978',
+  './assets/icon-192.png?pwa=staging-55ae978',
+  './assets/icon-512.png?pwa=staging-55ae978',
+  './assets/icon-maskable-512.png?pwa=staging-55ae978',
+  './assets/mobile-cover.png?pwa=staging-55ae978',
+  './assets/mobile-clover.svg?pwa=staging-55ae978',
 ];
 
 let selectedMobileDayKey = null;
@@ -58,6 +58,7 @@ const MOBILE_COVER_DIRECTION_LOCK_PX = 8;
 const MOBILE_COVER_SETTLE_MS = 180;
 const MOBILE_COVER_DOUBLE_TAP_WINDOW_MS = 400;
 const MOBILE_COVER_DOUBLE_TAP_DISTANCE_PX = 24;
+const MOBILE_COVER_DOUBLE_TAP_MOVE_TOLERANCE_PX = 24;
 let mobileCoverPointer = null;
 let mobileCoverLastTap = null;
 let mobileCoverTouchStart = null;
@@ -711,17 +712,15 @@ function restoreMobileTabScroll(tab, state) {
     return;
   }
   if (state.dayKey !== selectedMobileDayKey) return;
-  const card = Number.isInteger(state.itemIndex) ? mobileItineraryDays.querySelector?.(
-    mobileFormalCardSelector(tab) + '[data-mobile-item-index="' + state.itemIndex + '"]',
-  ) : null;
-  const rect = card?.getBoundingClientRect?.();
-  if (rect && typeof rect.top === 'number') {
-    const currentTop = mobileDocumentScrollTop();
-    const offset = state.alignCardAtBodyStart ? 0 : state.offset;
-    setMobileDocumentScrollTop(currentTop + rect.top - mobileHeaderBottom() - offset);
-    return;
-  }
   setMobileDocumentScrollTop(state.top);
+  if (!Number.isInteger(state.itemIndex)) return;
+  const card = mobileItineraryDays.querySelector?.(
+    mobileFormalCardSelector(tab) + '[data-mobile-item-index="' + state.itemIndex + '"]',
+  );
+  const rect = card?.getBoundingClientRect?.();
+  if (!rect || typeof rect.top !== 'number') return;
+  const offset = state.alignCardAtBodyStart ? 0 : state.offset;
+  setMobileDocumentScrollTop(mobileDocumentScrollTop() + rect.top - mobileHeaderBottom() - offset);
 }
 
 function resetMobileTabScrollPositions() {
@@ -818,7 +817,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-e508e8d';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-55ae978';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1627,7 +1626,7 @@ function trackMobileCoverTouchStart(event) {
     return;
   }
   const touch = event.touches[0];
-  mobileCoverTouchStart = {x: touch.clientX, y: touch.clientY, moved: false};
+  mobileCoverTouchStart = {x: touch.clientX, y: touch.clientY, exceedsDoubleTapTolerance: false};
 }
 
 function trackMobileCoverTouchMove(event) {
@@ -1637,8 +1636,8 @@ function trackMobileCoverTouchMove(event) {
   }
   const touch = event.touches[0];
   const start = mobileCoverTouchStart;
-  if (start && Math.hypot(touch.clientX - start.x, touch.clientY - start.y) >= MOBILE_COVER_DIRECTION_LOCK_PX) {
-    start.moved = true;
+  if (start && Math.hypot(touch.clientX - start.x, touch.clientY - start.y) >= MOBILE_COVER_DOUBLE_TAP_MOVE_TOLERANCE_PX) {
+    start.exceedsDoubleTapTolerance = true;
   }
 }
 
@@ -1646,7 +1645,7 @@ function suppressMobileCoverLegacyDoubleTapZoom(event) {
   if (event.touches?.length > 0) return;
   const touch = event.changedTouches?.[0];
   const start = mobileCoverTouchStart;
-  if (mobileCoverMultiTouch || start?.moved || event.target?.closest?.('.mobile-cover-brand') || !touch) {
+  if (mobileCoverMultiTouch || start?.exceedsDoubleTapTolerance || event.target?.closest?.('.mobile-cover-brand') || !touch) {
     resetMobileCoverDoubleTapFallback();
     return;
   }
@@ -2131,7 +2130,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v95）' : 'あり（v95確認不可）';
+    ? 'あり（v96）' : 'あり（v96確認不可）';
 }
 
 async function showPwaDiagnostics() {
