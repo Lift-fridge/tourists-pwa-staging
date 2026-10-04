@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-128121e';
+const PWA_SHELL_VERSION = 'staging-e508e8d';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-128121e',
-  './mobile.js?pwa=staging-128121e',
-  './mobile.css?pwa=staging-128121e',
-  './mobile-snapshot-store.js?pwa=staging-128121e',
-  './mobile-incoming-snapshot.js?pwa=staging-128121e',
-  './tourists-public-config.js?pwa=staging-128121e',
-  './assets/jsqr-1.4.0.js?pwa=staging-128121e',
-  './manifest.webmanifest?pwa=staging-128121e',
-  './assets/icon-192.png?pwa=staging-128121e',
-  './assets/icon-512.png?pwa=staging-128121e',
-  './assets/icon-maskable-512.png?pwa=staging-128121e',
-  './assets/mobile-cover.png?pwa=staging-128121e',
-  './assets/mobile-clover.svg?pwa=staging-128121e',
+  './index.html?pwa=staging-e508e8d',
+  './mobile.js?pwa=staging-e508e8d',
+  './mobile.css?pwa=staging-e508e8d',
+  './mobile-snapshot-store.js?pwa=staging-e508e8d',
+  './mobile-incoming-snapshot.js?pwa=staging-e508e8d',
+  './tourists-public-config.js?pwa=staging-e508e8d',
+  './assets/jsqr-1.4.0.js?pwa=staging-e508e8d',
+  './manifest.webmanifest?pwa=staging-e508e8d',
+  './assets/icon-192.png?pwa=staging-e508e8d',
+  './assets/icon-512.png?pwa=staging-e508e8d',
+  './assets/icon-maskable-512.png?pwa=staging-e508e8d',
+  './assets/mobile-cover.png?pwa=staging-e508e8d',
+  './assets/mobile-clover.svg?pwa=staging-e508e8d',
 ];
 
 let selectedMobileDayKey = null;
@@ -56,7 +56,7 @@ let selectedMobileMemoPageKey = null;
 const MOBILE_COVER_SWIPE_THRESHOLD_RATIO = 0.10;
 const MOBILE_COVER_DIRECTION_LOCK_PX = 8;
 const MOBILE_COVER_SETTLE_MS = 180;
-const MOBILE_COVER_DOUBLE_TAP_WINDOW_MS = 320;
+const MOBILE_COVER_DOUBLE_TAP_WINDOW_MS = 400;
 const MOBILE_COVER_DOUBLE_TAP_DISTANCE_PX = 24;
 let mobileCoverPointer = null;
 let mobileCoverLastTap = null;
@@ -711,15 +711,17 @@ function restoreMobileTabScroll(tab, state) {
     return;
   }
   if (state.dayKey !== selectedMobileDayKey) return;
-  setMobileDocumentScrollTop(state.top);
-  if (!Number.isInteger(state.itemIndex)) return;
-  const card = mobileItineraryDays.querySelector?.(
+  const card = Number.isInteger(state.itemIndex) ? mobileItineraryDays.querySelector?.(
     mobileFormalCardSelector(tab) + '[data-mobile-item-index="' + state.itemIndex + '"]',
-  );
+  ) : null;
   const rect = card?.getBoundingClientRect?.();
-  if (!rect || typeof rect.top !== 'number') return;
-  const offset = state.alignCardAtBodyStart ? 0 : state.offset;
-  setMobileDocumentScrollTop(mobileDocumentScrollTop() + rect.top - mobileHeaderBottom() - offset);
+  if (rect && typeof rect.top === 'number') {
+    const currentTop = mobileDocumentScrollTop();
+    const offset = state.alignCardAtBodyStart ? 0 : state.offset;
+    setMobileDocumentScrollTop(currentTop + rect.top - mobileHeaderBottom() - offset);
+    return;
+  }
+  setMobileDocumentScrollTop(state.top);
 }
 
 function resetMobileTabScrollPositions() {
@@ -816,7 +818,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-128121e';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-e508e8d';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -2129,7 +2131,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v94）' : 'あり（v94確認不可）';
+    ? 'あり（v95）' : 'あり（v95確認不可）';
 }
 
 async function showPwaDiagnostics() {
