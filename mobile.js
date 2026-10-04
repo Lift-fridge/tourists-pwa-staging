@@ -29,23 +29,23 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-254e6ed';
+const PWA_SHELL_VERSION = 'staging-fd03447';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-254e6ed',
-  './mobile.js?pwa=staging-254e6ed',
-  './mobile.css?pwa=staging-254e6ed',
-  './mobile-snapshot-store.js?pwa=staging-254e6ed',
-  './mobile-incoming-snapshot.js?pwa=staging-254e6ed',
-  './tourists-public-config.js?pwa=staging-254e6ed',
-  './assets/jsqr-1.4.0.js?pwa=staging-254e6ed',
-  './manifest.webmanifest?pwa=staging-254e6ed',
-  './assets/icon-192.png?pwa=staging-254e6ed',
-  './assets/icon-512.png?pwa=staging-254e6ed',
-  './assets/icon-maskable-512.png?pwa=staging-254e6ed',
-  './assets/mobile-cover.png?pwa=staging-254e6ed',
-  './assets/mobile-clover.svg?pwa=staging-254e6ed',
+  './index.html?pwa=staging-fd03447',
+  './mobile.js?pwa=staging-fd03447',
+  './mobile.css?pwa=staging-fd03447',
+  './mobile-snapshot-store.js?pwa=staging-fd03447',
+  './mobile-incoming-snapshot.js?pwa=staging-fd03447',
+  './tourists-public-config.js?pwa=staging-fd03447',
+  './assets/jsqr-1.4.0.js?pwa=staging-fd03447',
+  './manifest.webmanifest?pwa=staging-fd03447',
+  './assets/icon-192.png?pwa=staging-fd03447',
+  './assets/icon-512.png?pwa=staging-fd03447',
+  './assets/icon-maskable-512.png?pwa=staging-fd03447',
+  './assets/mobile-cover.png?pwa=staging-fd03447',
+  './assets/mobile-clover.svg?pwa=staging-fd03447',
 ];
 
 let selectedMobileDayKey = null;
@@ -817,7 +817,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-254e6ed';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-fd03447';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1626,7 +1626,30 @@ function trackMobileCoverTouchStart(event) {
     return;
   }
   const touch = event.touches[0];
-  mobileCoverTouchStart = {x: touch.clientX, y: touch.clientY, exceedsDoubleTapTolerance: false};
+  if (event.target?.closest?.('.mobile-cover-brand')) {
+    resetMobileCoverDoubleTapFallback();
+    return;
+  }
+  const now = Date.now();
+  const previous = mobileCoverLastTap;
+  const dx = previous ? touch.clientX - previous.x : 0;
+  const dy = previous ? touch.clientY - previous.y : 0;
+  const isSecondSingleFingerTap = previous
+    && !mobileCoverMultiTouch
+    && now - previous.at <= MOBILE_COVER_DOUBLE_TAP_WINDOW_MS
+    && Math.hypot(dx, dy) <= MOBILE_COVER_DOUBLE_TAP_DISTANCE_PX;
+  mobileCoverTouchStart = {
+    x: touch.clientX,
+    y: touch.clientY,
+    exceedsDoubleTapTolerance: false,
+    suppressesLegacyDoubleTapZoom: Boolean(isSecondSingleFingerTap),
+  };
+  mobileCoverLastTap = null;
+  if (isSecondSingleFingerTap && event.cancelable !== false) {
+    // Older iOS WebKit can commit smart zoom before a second touchend handler runs.
+    // Suppress only this second, non-interactive, single-finger cover tap.
+    event.preventDefault?.();
+  }
 }
 
 function trackMobileCoverTouchMove(event) {
@@ -1641,30 +1664,20 @@ function trackMobileCoverTouchMove(event) {
   }
 }
 
-function suppressMobileCoverLegacyDoubleTapZoom(event) {
+function recordMobileCoverTouchEnd(event) {
   if (event.touches?.length > 0) return;
   const touch = event.changedTouches?.[0];
   const start = mobileCoverTouchStart;
-  if (mobileCoverMultiTouch || start?.exceedsDoubleTapTolerance || event.target?.closest?.('.mobile-cover-brand') || !touch) {
+  if (mobileCoverMultiTouch
+      || start?.exceedsDoubleTapTolerance
+      || start?.suppressesLegacyDoubleTapZoom
+      || event.target?.closest?.('.mobile-cover-brand')
+      || !touch) {
     resetMobileCoverDoubleTapFallback();
     return;
   }
-  const now = Date.now();
-  const previous = mobileCoverLastTap;
-  const dx = previous ? touch.clientX - previous.x : 0;
-  const dy = previous ? touch.clientY - previous.y : 0;
-  const isDoubleTap = previous
-    && now - previous.at <= MOBILE_COVER_DOUBLE_TAP_WINDOW_MS
-    && Math.hypot(dx, dy) <= MOBILE_COVER_DOUBLE_TAP_DISTANCE_PX;
   mobileCoverTouchStart = null;
-  mobileCoverLastTap = null;
-  if (isDoubleTap) {
-    // Older iOS WebKit ignores touch-action: manipulation for double-tap smart zoom.
-    // This is limited to a second single-finger tap on the non-interactive cover surface.
-    event.preventDefault?.();
-    return;
-  }
-  mobileCoverLastTap = {at: now, x: touch.clientX, y: touch.clientY};
+  mobileCoverLastTap = {at: Date.now(), x: touch.clientX, y: touch.clientY};
 }
 
 function installMobileCoverSwipe() {
@@ -1672,9 +1685,9 @@ function installMobileCoverSwipe() {
   mobileCover.addEventListener('pointermove', moveMobileCoverSwipe);
   mobileCover.addEventListener('pointerup', finishMobileCoverSwipe);
   mobileCover.addEventListener('pointercancel', (event) => finishMobileCoverSwipe(event, true));
-  mobileCover.addEventListener('touchstart', trackMobileCoverTouchStart, {passive: true});
+  mobileCover.addEventListener('touchstart', trackMobileCoverTouchStart, {passive: false});
   mobileCover.addEventListener('touchmove', trackMobileCoverTouchMove, {passive: true});
-  mobileCover.addEventListener('touchend', suppressMobileCoverLegacyDoubleTapZoom, {passive: false});
+  mobileCover.addEventListener('touchend', recordMobileCoverTouchEnd, {passive: true});
   mobileCover.addEventListener('touchcancel', resetMobileCoverDoubleTapFallback, {passive: true});
 }
 
@@ -2130,7 +2143,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v97）' : 'あり（v97確認不可）';
+    ? 'あり（v98）' : 'あり（v98確認不可）';
 }
 
 async function showPwaDiagnostics() {
