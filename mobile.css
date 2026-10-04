@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-f13c2b6') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-3b407a8') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -176,7 +176,7 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
 .mobile-memo-body a { color: #2d6f9e; }
 .mobile-memo-url-only { display: block; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mobile-memo-url-only a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mobile-itinerary-day-summary { margin: .35rem 0 .85rem; overflow: hidden; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); text-overflow: ellipsis; white-space: nowrap; }
+.mobile-itinerary-day-summary { margin: .35rem 0 .85rem; color: var(--mobile-muted); font-size: var(--mobile-font-secondary); line-height: 1.45; overflow-wrap: anywhere; }
 .mobile-itinerary-day-holiday { margin: .35rem 0; color: var(--mobile-sunday); font-size: var(--mobile-font-secondary); font-weight: 650; line-height: 1.45; }
 .mobile-itinerary-card { margin: 0; padding: .8rem 0; border: 0; color: var(--mobile-ink); }
 .mobile-itinerary-card-transport { background: var(--mobile-paper); background-clip: content-box; }
