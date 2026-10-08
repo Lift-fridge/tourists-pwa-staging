@@ -19,6 +19,17 @@ const savedTripQrScannerVideo = document.getElementById('mobile-saved-trip-qr-sc
 const savedTripQrScannerCanvas = document.getElementById('mobile-saved-trip-qr-scanner-canvas');
 const savedTripQrScannerStatus = document.getElementById('mobile-saved-trip-qr-scanner-status');
 const savedTripQrScannerClose = document.getElementById('mobile-saved-trip-qr-scanner-close');
+const savedTripShare = document.getElementById('mobile-saved-trip-share');
+const savedTripShareTrip = document.getElementById('mobile-saved-trip-share-trip');
+const savedTripShareStatus = document.getElementById('mobile-saved-trip-share-status');
+const savedTripShareConfirm = document.getElementById('mobile-saved-trip-share-confirm');
+const savedTripShareSend = document.getElementById('mobile-saved-trip-share-send');
+const savedTripShareVerify = document.getElementById('mobile-saved-trip-share-verify');
+const savedTripShareOtp = document.getElementById('mobile-saved-trip-share-otp');
+const savedTripShareVerifyButton = document.getElementById('mobile-saved-trip-share-verify-button');
+const savedTripShareQr = document.getElementById('mobile-saved-trip-share-qr');
+const savedTripShareQrCode = document.getElementById('mobile-saved-trip-share-qr-code');
+const savedTripShareClose = document.getElementById('mobile-saved-trip-share-close');
 const mobileItinerary = document.getElementById('mobile-itinerary');
 const mobileItineraryTabInfo = document.getElementById('mobile-itinerary-tab-info');
 const mobileItineraryTabItinerary = document.getElementById('mobile-itinerary-tab-itinerary');
@@ -29,23 +40,25 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-a0de8a2';
+const PWA_SHELL_VERSION = 'staging-0c32cc3';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-a0de8a2',
-  './mobile.js?pwa=staging-a0de8a2',
-  './mobile.css?pwa=staging-a0de8a2',
-  './mobile-snapshot-store.js?pwa=staging-a0de8a2',
-  './mobile-incoming-snapshot.js?pwa=staging-a0de8a2',
-  './tourists-public-config.js?pwa=staging-a0de8a2',
-  './assets/jsqr-1.4.0.js?pwa=staging-a0de8a2',
-  './manifest.webmanifest?pwa=staging-a0de8a2',
-  './assets/icon-192.png?pwa=staging-a0de8a2',
-  './assets/icon-512.png?pwa=staging-a0de8a2',
-  './assets/icon-maskable-512.png?pwa=staging-a0de8a2',
-  './assets/mobile-cover.png?pwa=staging-a0de8a2',
-  './assets/mobile-clover.svg?pwa=staging-a0de8a2',
+  './index.html?pwa=staging-0c32cc3',
+  './mobile.js?pwa=staging-0c32cc3',
+  './mobile.css?pwa=staging-0c32cc3',
+  './mobile-snapshot-store.js?pwa=staging-0c32cc3',
+  './mobile-share-request-ticket-store.js?pwa=staging-0c32cc3',
+  './mobile-share-qr-code.js?pwa=staging-0c32cc3',
+  './mobile-incoming-snapshot.js?pwa=staging-0c32cc3',
+  './tourists-public-config.js?pwa=staging-0c32cc3',
+  './assets/jsqr-1.4.0.js?pwa=staging-0c32cc3',
+  './manifest.webmanifest?pwa=staging-0c32cc3',
+  './assets/icon-192.png?pwa=staging-0c32cc3',
+  './assets/icon-512.png?pwa=staging-0c32cc3',
+  './assets/icon-maskable-512.png?pwa=staging-0c32cc3',
+  './assets/mobile-cover.png?pwa=staging-0c32cc3',
+  './assets/mobile-clover.svg?pwa=staging-0c32cc3',
 ];
 
 let selectedMobileDayKey = null;
@@ -82,6 +95,8 @@ let mobileFontSize = MOBILE_FONT_SIZE_DEFAULT;
 let mobileFontSizeWriteChain = Promise.resolve();
 const mobileFontSizeButtons = new Map();
 let mobileQrScannerSession = null;
+let mobileShareState = null;
+let mobileShareGeneration = 0;
 const TOURISTS_TRANSFER_PAYLOAD = /^tourists:v1:([A-Za-z0-9_-]{43})$/;
 
 function mobilePreviewRequest() {
@@ -785,7 +800,7 @@ function scheduleMobileMemoScrollability() {
 }
 
 function mobileTabAriaLabel(tab) {
-  return tab === 'info' ? '情報' : tab === 'memo' ? '旅行メモ' : '旅程';
+  return tab === 'info' ? '詳細' : tab === 'memo' ? '旅行メモ' : '旅程';
 }
 
 function setMobileActiveTab(tab) {
@@ -821,7 +836,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-a0de8a2';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-0c32cc3';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -949,7 +964,7 @@ function mobileSwipeHeader(snapshot, tab, selected) {
   header.setAttribute('aria-hidden', 'true');
   header.querySelectorAll?.('[id]').forEach((element) => element.removeAttribute('id'));
   header.querySelectorAll?.('.mobile-itinerary-tab').forEach((button) => {
-    const isCurrent = button.textContent.trim() === (tab === 'info' ? '情報' : tab === 'memo' ? 'メモ' : '旅程');
+    const isCurrent = button.textContent.trim() === (tab === 'info' ? '詳細' : tab === 'memo' ? 'メモ' : '旅程');
     button.className = isCurrent
       ? 'mobile-itinerary-tab mobile-itinerary-tab-current' : 'mobile-itinerary-tab';
     if (isCurrent) button.setAttribute('aria-current', 'page');
@@ -1767,7 +1782,7 @@ mobileItineraryTabInfo.addEventListener('click', () => selectMobileTab('info'));
 mobileItineraryTabItinerary.addEventListener('click', () => selectMobileTab('itinerary'));
 mobileItineraryTabMemo.addEventListener('click', () => selectMobileTab('memo'));
 
-function renderSavedTripList(snapshots) {
+async function renderSavedTripList(snapshots) {
   savedTripListItems.replaceChildren();
   if (!snapshots.length) {
     savedTripListStatus.textContent = 'まだ旅行が保存されていません。';
@@ -1801,6 +1816,27 @@ function renderSavedTripList(snapshots) {
     });
 
     row.append(item);
+    if (!mobilePreview.enabled && globalThis.MobileShareRequestTicketStore) {
+      try {
+        const ticket = await globalThis.MobileShareRequestTicketStore.load(
+          globalThis.MobileSnapshotStore.tripKey(snapshot),
+        );
+        if (globalThis.MobileShareRequestTicketStore.validTicket(ticket)) {
+          const share = document.createElement('button');
+          share.type = 'button';
+          share.className = 'mobile-saved-trip-share-button';
+          share.textContent = '共有';
+          share.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void openMobileShareDialog(snapshot);
+          });
+          row.append(share);
+        }
+      } catch (_) {
+        // Ticket store failure keeps legacy/view/delete behavior and hides share.
+      }
+    }
     if (!mobilePreview.enabled) {
       const remove = document.createElement('button');
       remove.type = 'button';
@@ -1814,18 +1850,161 @@ function renderSavedTripList(snapshots) {
   }
 }
 
+function clearMobileShareDialog() {
+  if (mobileShareState) {
+    mobileShareState.ticket = null;
+    mobileShareState.challengeId = null;
+    mobileShareState.otp = null;
+    mobileShareState.sendPending = false;
+    mobileShareState.verifyPending = false;
+  }
+  mobileShareGeneration += 1;
+  mobileShareState = null;
+  if (savedTripShareOtp) savedTripShareOtp.value = '';
+  if (savedTripShareQrCode) savedTripShareQrCode.replaceChildren();
+  if (savedTripShare) savedTripShare.hidden = true;
+  if (savedTripShareConfirm) savedTripShareConfirm.hidden = false;
+  if (savedTripShareVerify) savedTripShareVerify.hidden = true;
+  if (savedTripShareQr) savedTripShareQr.hidden = true;
+  if (savedTripShareSend) savedTripShareSend.disabled = false;
+  if (savedTripShareVerifyButton) savedTripShareVerifyButton.disabled = false;
+  if (savedTripShareStatus) savedTripShareStatus.textContent = '';
+}
+
+function isActiveMobileShareSession(state, generation) {
+  return mobileShareState === state && state?.generation === generation && mobileShareGeneration === generation;
+}
+
+function shareRequestUnavailableMessage() {
+  return '共有を続けられませんでした。しばらくしてから、もう一度お試しください。';
+}
+
+async function postMobileShareRequest(body) {
+  const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
+  if (!config) throw new Error('SHARE_REQUEST_UNAVAILABLE');
+  const response = await fetch(config.url + '/functions/v1/tourists-share-otp', {
+    method: 'POST',
+    credentials: 'omit',
+    cache: 'no-store',
+    headers: {'apikey': config.key, 'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok || !result || result.ok !== true) throw new Error('SHARE_REQUEST_UNAVAILABLE');
+  return result;
+}
+
+async function openMobileShareDialog(snapshot) {
+  const key = globalThis.MobileSnapshotStore.tripKey(snapshot);
+  if (!key || !globalThis.MobileShareRequestTicketStore) return;
+  clearMobileShareDialog();
+  const generation = mobileShareGeneration;
+  mobileShareState = {key, generation, ticket: null, challengeId: null, sendPending: false, verifyPending: false};
+  savedTripShareTrip.textContent = mobileTripTitle(snapshot);
+  savedTripShare.hidden = false;
+  savedTripShareStatus.textContent = '';
+  try {
+    const ticket = await globalThis.MobileShareRequestTicketStore.load(key);
+    if (!globalThis.MobileShareRequestTicketStore.validTicket(ticket)) throw new Error('SHARE_REQUEST_UNAVAILABLE');
+    if (!isActiveMobileShareSession(mobileShareState, generation) || mobileShareState.key !== key) return;
+    mobileShareState.ticket = ticket;
+  } catch (_) {
+    if (isActiveMobileShareSession(mobileShareState, generation)) {
+      savedTripShareStatus.textContent = shareRequestUnavailableMessage();
+    }
+  }
+}
+
+async function sendMobileShareOtp() {
+  const state = mobileShareState;
+  const generation = state?.generation;
+  if (!isActiveMobileShareSession(state, generation) || !state.ticket || state.sendPending) return;
+  state.sendPending = true;
+  savedTripShareSend.disabled = true;
+  savedTripShareStatus.textContent = '確認コードを送信しています…';
+  try {
+    const result = await postMobileShareRequest({action: 'send', share_request_ticket: state.ticket});
+    if (!result || typeof result.challenge_id !== 'string') throw new Error('SHARE_REQUEST_UNAVAILABLE');
+    if (!isActiveMobileShareSession(state, generation)) return;
+    state.challengeId = result.challenge_id;
+    savedTripShareConfirm.hidden = true;
+    savedTripShareVerify.hidden = false;
+    savedTripShareStatus.textContent = '確認コードを入力してください。';
+    savedTripShareOtp.focus();
+  } catch (_) {
+    if (isActiveMobileShareSession(state, generation)) {
+      savedTripShareStatus.textContent = shareRequestUnavailableMessage();
+    }
+  } finally {
+    if (isActiveMobileShareSession(state, generation)) {
+      state.sendPending = false;
+      savedTripShareSend.disabled = false;
+    }
+  }
+}
+
+async function verifyMobileShareOtp() {
+  const state = mobileShareState;
+  const generation = state?.generation;
+  const otp = savedTripShareOtp.value.trim();
+  if (!isActiveMobileShareSession(state, generation) || !state.ticket || !state.challengeId
+      || state.verifyPending || !/^[0-9]{6}$/.test(otp)) {
+    savedTripShareStatus.textContent = shareRequestUnavailableMessage();
+    return;
+  }
+  state.otp = otp;
+  state.verifyPending = true;
+  savedTripShareVerifyButton.disabled = true;
+  savedTripShareStatus.textContent = '確認しています…';
+  try {
+    const result = await postMobileShareRequest({
+      action: 'verify', share_request_ticket: state.ticket, challenge_id: state.challengeId, otp: state.otp,
+    });
+    if (!isActiveMobileShareSession(state, generation)) return;
+    const token = result?.transfer_token;
+    if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new Error('SHARE_REQUEST_UNAVAILABLE');
+    const payload = 'tourists:v1:' + token;
+    if (!globalThis.LocalQrCode || typeof globalThis.LocalQrCode.createSvg !== 'function') throw new Error('QR_UNAVAILABLE');
+    savedTripShareQrCode.replaceChildren(globalThis.LocalQrCode.createSvg(payload));
+    state.ticket = null;
+    state.challengeId = null;
+    state.otp = null;
+    savedTripShareOtp.value = '';
+    savedTripShareVerify.hidden = true;
+    savedTripShareQr.hidden = false;
+    savedTripShareStatus.textContent = 'QRコードを表示しました。';
+  } catch (_) {
+    if (isActiveMobileShareSession(state, generation)) {
+      savedTripShareStatus.textContent = shareRequestUnavailableMessage();
+    }
+  } finally {
+    if (isActiveMobileShareSession(state, generation)) {
+      state.otp = null;
+      state.verifyPending = false;
+      savedTripShareOtp.value = '';
+      savedTripShareVerifyButton.disabled = false;
+    }
+  }
+}
+
 async function removeSavedTrip(snapshot, event) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
   const key = globalThis.MobileSnapshotStore.tripKey(snapshot);
   if (!key || !window.confirm('「' + mobileTripTitle(snapshot) + '」をこのiPhoneから削除しますか？')) return;
   try {
+    const ticketStore = globalThis.MobileShareRequestTicketStore;
+    if (!ticketStore || typeof ticketStore.load !== 'function' || typeof ticketStore.remove !== 'function') {
+      throw new Error('SHARE_REQUEST_TICKET_STORE_UNAVAILABLE');
+    }
+    const ticket = await ticketStore.load(key);
+    if (ticket !== null) await ticketStore.remove(key);
     await globalThis.MobileSnapshotStore.remove(key);
     const snapshots = orderedSnapshots(await globalThis.MobileSnapshotStore.list());
     if (currentMobileSnapshot && globalThis.MobileSnapshotStore.tripKey(currentMobileSnapshot) === key) {
       clearCurrentMobileTrip();
     }
-    renderSavedTripList(snapshots);
+    await renderSavedTripList(snapshots);
   } catch (_) {
     savedTripListStatus.textContent = '保存済みの旅行を削除できません。ブラウザのデータ保存設定を確認してください。';
   }
@@ -1837,7 +2016,7 @@ async function showSavedTrips() {
     const snapshots = mobilePreview.enabled
       ? (currentMobileSnapshot ? [currentMobileSnapshot] : [])
       : orderedSnapshots(await globalThis.MobileSnapshotStore.list());
-    renderSavedTripList(snapshots);
+    await renderSavedTripList(snapshots);
     crossfadeCoverToSavedTripList();
   } catch (_) {
     homeMessage.textContent = '保存済みの旅行を読み込めません。ブラウザのデータ保存設定を確認してください。';
@@ -1851,7 +2030,7 @@ function showEmptySavedTrips() {
   clearSavedTripCrossfade();
   hideMobileCover();
   mobileTripContent.hidden = true;
-  renderSavedTripList([]);
+  void renderSavedTripList([]);
   savedTripList.hidden = false;
   document.body.classList.add('mobile-saved-trip-list-active');
 }
@@ -1989,18 +2168,68 @@ async function fetchTouristsTemporaryTransfer(token) {
   return snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot) ? snapshot : null;
 }
 
+async function claimTouristsTemporaryTransfer(token) {
+  const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
+  if (!config) return null;
+  const response = await fetch(config.url + '/rest/v1/rpc/claim_tourists_temporary_transfer', {
+    method: 'POST',
+    credentials: 'omit',
+    cache: 'no-store',
+    headers: {'apikey': config.key, 'Content-Type': 'application/json'},
+    body: JSON.stringify({p_token: token}),
+  });
+  if (!response.ok) return null;
+  const result = await response.json();
+  return result && typeof result === 'object' && !Array.isArray(result) ? result : null;
+}
+
+async function finalizeTouristsTemporaryTransferReceive(claimId) {
+  const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
+  if (!config || typeof claimId !== 'string') return null;
+  const response = await fetch(config.url + '/rest/v1/rpc/finalize_tourists_temporary_transfer_receive', {
+    method: 'POST',
+    credentials: 'omit',
+    cache: 'no-store',
+    headers: {'apikey': config.key, 'Content-Type': 'application/json'},
+    body: JSON.stringify({p_claim_id: claimId}),
+  });
+  if (!response.ok) return null;
+  const result = await response.json();
+  return result && typeof result === 'object' && !Array.isArray(result) ? result : null;
+}
+
+async function saveValidatedMobileSnapshot(snapshot) {
+  if (!snapshot || !await globalThis.MobileIncomingSnapshot?.validSnapshot(snapshot)) {
+    throw new Error('RECEIVE_VALIDATION_FAILED');
+  }
+  await globalThis.MobileSnapshotStore.save(snapshot);
+  showSnapshot(snapshot);
+  return snapshot;
+}
+
 async function receiveTouristsTemporaryTransfer(token) {
   savedTripListStatus.textContent = '旅行を受け取っています…';
   savedTripReceiveShow.disabled = true;
   try {
-    const snapshot = await fetchTouristsTemporaryTransfer(token);
-    if (!snapshot || !await globalThis.MobileIncomingSnapshot?.validSnapshot(snapshot)) throw new Error('RECEIVE_FAILED');
-    await globalThis.MobileSnapshotStore.save(snapshot);
-    showSnapshot(snapshot);
-    homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
+    const claim = await claimTouristsTemporaryTransfer(token);
+    if (claim) {
+      if (typeof claim.claim_id !== 'string' || !claim.snapshot) throw new Error('CLAIM_INVALID');
+      const snapshot = await saveValidatedMobileSnapshot(claim.snapshot);
+      const finalized = await finalizeTouristsTemporaryTransferReceive(claim.claim_id);
+      const ticket = finalized?.share_request_ticket;
+      if (!globalThis.MobileShareRequestTicketStore?.validTicket(ticket)) throw new Error('FINALIZE_FAILED');
+      await globalThis.MobileShareRequestTicketStore.save(
+        globalThis.MobileSnapshotStore.tripKey(snapshot), ticket,
+      );
+      homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
+    } else {
+      const snapshot = await fetchTouristsTemporaryTransfer(token);
+      await saveValidatedMobileSnapshot(snapshot);
+      homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
+    }
   } catch (_) {
-    // RPCはexpired、invalid、nonexistentを同じNULLにする。画面側も差を表示しない。
-    savedTripListStatus.textContent = '旅行を受け取れませんでした。PCで表示されたQRを10分以内にもう一度読み取ってください。';
+    // finalize失敗後もsave済みsnapshotは残る。raw Ticketや内部エラーは表示しない。
+    savedTripListStatus.textContent = '旅行を受け取れませんでした。保存済み旅行を確認してください。';
   } finally {
     savedTripReceiveShow.disabled = false;
   }
@@ -2135,6 +2364,9 @@ async function registerMobileServiceWorker() {
 }
 
 savedTripsShow.addEventListener('click', () => { void showSavedTrips(); });
+savedTripShareSend.addEventListener('click', () => { void sendMobileShareOtp(); });
+savedTripShareVerifyButton.addEventListener('click', () => { void verifyMobileShareOtp(); });
+savedTripShareClose.addEventListener('click', clearMobileShareDialog);
 
 if (mobilePreview.enabled) {
   applyMobileFontSize(MOBILE_FONT_SIZE_DEFAULT);
@@ -2149,7 +2381,7 @@ if (mobilePreview.enabled) {
   void registerMobileServiceWorker();
 }
 
-window.addEventListener('pagehide', () => stopMobileQrScanner());
+window.addEventListener('pagehide', () => { stopMobileQrScanner(); clearMobileShareDialog(); });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') stopMobileQrScanner();
 });
