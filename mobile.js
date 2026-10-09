@@ -40,25 +40,25 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-16c33e8';
+const PWA_SHELL_VERSION = 'staging-a9ef533';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-16c33e8',
-  './mobile.js?pwa=staging-16c33e8',
-  './mobile.css?pwa=staging-16c33e8',
-  './mobile-snapshot-store.js?pwa=staging-16c33e8',
-  './mobile-share-request-ticket-store.js?pwa=staging-16c33e8',
-  './mobile-share-qr-code.js?pwa=staging-16c33e8',
-  './mobile-incoming-snapshot.js?pwa=staging-16c33e8',
-  './tourists-public-config.js?pwa=staging-16c33e8',
-  './assets/jsqr-1.4.0.js?pwa=staging-16c33e8',
-  './manifest.webmanifest?pwa=staging-16c33e8',
-  './assets/icon-192.png?pwa=staging-16c33e8',
-  './assets/icon-512.png?pwa=staging-16c33e8',
-  './assets/icon-maskable-512.png?pwa=staging-16c33e8',
-  './assets/mobile-cover.png?pwa=staging-16c33e8',
-  './assets/mobile-clover.svg?pwa=staging-16c33e8',
+  './index.html?pwa=staging-a9ef533',
+  './mobile.js?pwa=staging-a9ef533',
+  './mobile.css?pwa=staging-a9ef533',
+  './mobile-snapshot-store.js?pwa=staging-a9ef533',
+  './mobile-share-request-ticket-store.js?pwa=staging-a9ef533',
+  './mobile-share-qr-code.js?pwa=staging-a9ef533',
+  './mobile-incoming-snapshot.js?pwa=staging-a9ef533',
+  './tourists-public-config.js?pwa=staging-a9ef533',
+  './assets/jsqr-1.4.0.js?pwa=staging-a9ef533',
+  './manifest.webmanifest?pwa=staging-a9ef533',
+  './assets/icon-192.png?pwa=staging-a9ef533',
+  './assets/icon-512.png?pwa=staging-a9ef533',
+  './assets/icon-maskable-512.png?pwa=staging-a9ef533',
+  './assets/mobile-cover.png?pwa=staging-a9ef533',
+  './assets/mobile-clover.svg?pwa=staging-a9ef533',
 ];
 
 let selectedMobileDayKey = null;
@@ -836,7 +836,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-16c33e8';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-a9ef533';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -2152,58 +2152,122 @@ function touristsTransferConfig(value) {
   }
 }
 
+function mobileReceiveStageError(code) {
+  return new Error('TOURISTS_RECEIVE_' + code);
+}
+
+function mobileReceiveHttpError(stage, response) {
+  const status = Number(response?.status);
+  const suffix = Number.isInteger(status) && status >= 100 && status <= 599 ? String(status) : 'UNKNOWN';
+  return mobileReceiveStageError(stage + '_HTTP_' + suffix);
+}
+
+function mobileReceiveDiagnosticCode(error) {
+  const match = /^TOURISTS_RECEIVE_([A-Z]+(?:_[A-Z]+)*(?:_(?:[1-5][0-9]{2}|UNKNOWN))?)$/.exec(error?.message || '');
+  return match ? match[1] : 'UNEXPECTED';
+}
+
 async function fetchTouristsTemporaryTransfer(token) {
   // GitHub Pagesでも同じ受取経路を使う。公開可能なURL/keyだけを静的configから読む。
   const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
-  if (!config) return null;
-  const response = await fetch(config.url + '/rest/v1/rpc/receive_tourists_temporary_transfer', {
-    method: 'POST',
-    credentials: 'omit',
-    cache: 'no-store',
-    headers: {'apikey': config.key, 'Content-Type': 'application/json'},
-    body: JSON.stringify({p_token: token}),
-  });
-  if (!response.ok) return null;
-  const snapshot = await response.json();
-  return snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot) ? snapshot : null;
+  if (!config) throw mobileReceiveStageError('RECEIVE_CONFIG');
+  let response;
+  try {
+    response = await fetch(config.url + '/rest/v1/rpc/receive_tourists_temporary_transfer', {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: {'apikey': config.key, 'Content-Type': 'application/json'},
+      body: JSON.stringify({p_token: token}),
+    });
+  } catch (_) {
+    throw mobileReceiveStageError('RECEIVE_NETWORK');
+  }
+  if (!response.ok) throw mobileReceiveHttpError('RECEIVE', response);
+  let snapshot;
+  try {
+    snapshot = await response.json();
+  } catch (_) {
+    throw mobileReceiveStageError('RECEIVE_RESPONSE');
+  }
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+    throw mobileReceiveStageError('RECEIVE_RESPONSE');
+  }
+  return snapshot;
 }
 
 async function claimTouristsTemporaryTransfer(token) {
   const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
   if (!config) return null;
-  const response = await fetch(config.url + '/rest/v1/rpc/claim_tourists_temporary_transfer', {
-    method: 'POST',
-    credentials: 'omit',
-    cache: 'no-store',
-    headers: {'apikey': config.key, 'Content-Type': 'application/json'},
-    body: JSON.stringify({p_token: token}),
-  });
+  let response;
+  try {
+    response = await fetch(config.url + '/rest/v1/rpc/claim_tourists_temporary_transfer', {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: {'apikey': config.key, 'Content-Type': 'application/json'},
+      body: JSON.stringify({p_token: token}),
+    });
+  } catch (_) {
+    throw mobileReceiveStageError('CLAIM_NETWORK');
+  }
   if (!response.ok) return null;
-  const result = await response.json();
+  let result;
+  try {
+    result = await response.json();
+  } catch (_) {
+    throw mobileReceiveStageError('CLAIM_RESPONSE');
+  }
   return result && typeof result === 'object' && !Array.isArray(result) ? result : null;
 }
 
 async function finalizeTouristsTemporaryTransferReceive(claimId) {
   const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
-  if (!config || typeof claimId !== 'string') return null;
-  const response = await fetch(config.url + '/rest/v1/rpc/finalize_tourists_temporary_transfer_receive', {
-    method: 'POST',
-    credentials: 'omit',
-    cache: 'no-store',
-    headers: {'apikey': config.key, 'Content-Type': 'application/json'},
-    body: JSON.stringify({p_claim_id: claimId}),
-  });
-  if (!response.ok) return null;
-  const result = await response.json();
-  return result && typeof result === 'object' && !Array.isArray(result) ? result : null;
+  if (!config || typeof claimId !== 'string') throw mobileReceiveStageError('FINALIZE_CONFIG');
+  let response;
+  try {
+    response = await fetch(config.url + '/rest/v1/rpc/finalize_tourists_temporary_transfer_receive', {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: {'apikey': config.key, 'Content-Type': 'application/json'},
+      body: JSON.stringify({p_claim_id: claimId}),
+    });
+  } catch (_) {
+    throw mobileReceiveStageError('FINALIZE_NETWORK');
+  }
+  if (!response.ok) throw mobileReceiveHttpError('FINALIZE', response);
+  let result;
+  try {
+    result = await response.json();
+  } catch (_) {
+    throw mobileReceiveStageError('FINALIZE_RESPONSE');
+  }
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    throw mobileReceiveStageError('FINALIZE_RESPONSE');
+  }
+  return result;
 }
 
 async function saveValidatedMobileSnapshot(snapshot) {
-  if (!snapshot || !await globalThis.MobileIncomingSnapshot?.validSnapshot(snapshot)) {
-    throw new Error('RECEIVE_VALIDATION_FAILED');
+  try {
+    if (!snapshot || !await globalThis.MobileIncomingSnapshot?.validSnapshot(snapshot)) {
+      throw mobileReceiveStageError('SNAPSHOT_VALIDATION');
+    }
+  } catch (error) {
+    if (error?.message === 'TOURISTS_RECEIVE_SNAPSHOT_VALIDATION') throw error;
+    throw mobileReceiveStageError('SNAPSHOT_VALIDATION');
   }
-  await globalThis.MobileSnapshotStore.save(snapshot);
-  showSnapshot(snapshot);
+  try {
+    await globalThis.MobileSnapshotStore.save(snapshot);
+  } catch (_) {
+    throw mobileReceiveStageError('SNAPSHOT_STORAGE');
+  }
+  try {
+    showSnapshot(snapshot);
+  } catch (_) {
+    throw mobileReceiveStageError('SNAPSHOT_DISPLAY');
+  }
   return snapshot;
 }
 
@@ -2213,23 +2277,28 @@ async function receiveTouristsTemporaryTransfer(token) {
   try {
     const claim = await claimTouristsTemporaryTransfer(token);
     if (claim) {
-      if (typeof claim.claim_id !== 'string' || !claim.snapshot) throw new Error('CLAIM_INVALID');
+      if (typeof claim.claim_id !== 'string' || !claim.snapshot) throw mobileReceiveStageError('CLAIM_RESPONSE');
       const snapshot = await saveValidatedMobileSnapshot(claim.snapshot);
       const finalized = await finalizeTouristsTemporaryTransferReceive(claim.claim_id);
       const ticket = finalized?.share_request_ticket;
-      if (!globalThis.MobileShareRequestTicketStore?.validTicket(ticket)) throw new Error('FINALIZE_FAILED');
-      await globalThis.MobileShareRequestTicketStore.save(
-        globalThis.MobileSnapshotStore.tripKey(snapshot), ticket,
-      );
+      if (!globalThis.MobileShareRequestTicketStore?.validTicket(ticket)) throw mobileReceiveStageError('TICKET_RESPONSE');
+      try {
+        await globalThis.MobileShareRequestTicketStore.save(
+          globalThis.MobileSnapshotStore.tripKey(snapshot), ticket,
+        );
+      } catch (_) {
+        throw mobileReceiveStageError('TICKET_STORAGE');
+      }
       homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
     } else {
       const snapshot = await fetchTouristsTemporaryTransfer(token);
       await saveValidatedMobileSnapshot(snapshot);
       homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
     }
-  } catch (_) {
+  } catch (error) {
     // finalize失敗後もsave済みsnapshotは残る。raw Ticketや内部エラーは表示しない。
-    savedTripListStatus.textContent = '旅行を受け取れませんでした。保存済み旅行を確認してください。';
+    savedTripListStatus.textContent = '旅行を受け取れませんでした。保存済み旅行を確認してください。（診断: '
+      + mobileReceiveDiagnosticCode(error) + '）';
   } finally {
     savedTripReceiveShow.disabled = false;
   }
@@ -2306,7 +2375,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v104）' : 'あり（v104確認不可）';
+    ? 'あり（v105）' : 'あり（v105確認不可）';
 }
 
 async function showPwaDiagnostics() {
