@@ -7,18 +7,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="TOURISTS STAGING">
-  <link rel="manifest" href="./manifest.webmanifest?pwa=staging-7382652">
-  <link rel="icon" href="./assets/icon-192.png?pwa=staging-7382652" type="image/png">
-  <link rel="apple-touch-icon" href="./assets/icon-192.png?pwa=staging-7382652">
+  <link rel="manifest" href="./manifest.webmanifest?pwa=staging-d0b6a3e">
+  <link rel="icon" href="./assets/icon-192.png?pwa=staging-d0b6a3e" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png?pwa=staging-d0b6a3e">
   <title>TOURISTS STAGING</title>
-  <link rel="stylesheet" href="./mobile.css?pwa=staging-7382652">
-  <script src="./mobile-snapshot-store.js?pwa=staging-7382652" defer></script>
-  <script src="./mobile-share-request-ticket-store.js?pwa=staging-7382652" defer></script>
-  <script src="./mobile-share-qr-code.js?pwa=staging-7382652" defer></script>
-  <script src="./mobile-incoming-snapshot.js?pwa=staging-7382652" defer></script>
-  <script src="./assets/jsqr-1.4.0.js?pwa=staging-7382652" defer></script>
-  <script src="./tourists-public-config.js?pwa=staging-7382652" defer></script>
-  <script src="./mobile.js?pwa=staging-7382652" defer></script>
+  <link rel="stylesheet" href="./mobile.css?pwa=staging-d0b6a3e">
+  <script src="./mobile-snapshot-store.js?pwa=staging-d0b6a3e" defer></script>
+  <script src="./mobile-share-request-ticket-store.js?pwa=staging-d0b6a3e" defer></script>
+  <script src="./mobile-share-qr-code.js?pwa=staging-d0b6a3e" defer></script>
+  <script src="./mobile-incoming-snapshot.js?pwa=staging-d0b6a3e" defer></script>
+  <script src="./assets/jsqr-1.4.0.js?pwa=staging-d0b6a3e" defer></script>
+  <script src="./tourists-public-config.js?pwa=staging-d0b6a3e" defer></script>
+  <script src="./mobile.js?pwa=staging-d0b6a3e" defer></script>
 </head>
 <body>
   <main class="mobile-home-card">
@@ -31,7 +31,7 @@
         <p id="mobile-cover-saved-at" class="mobile-cover-saved-at" hidden></p>
       </div>
       <div class="mobile-cover-footer" aria-hidden="true">
-        <img class="mobile-cover-ornament" src="./assets/mobile-clover.svg?pwa=staging-7382652" alt="">
+        <img class="mobile-cover-ornament" src="./assets/mobile-clover.svg?pwa=staging-d0b6a3e" alt="">
         <p class="mobile-cover-swipe"><span>↑</span> 上へスワイプして旅をはじめる</p>
       </div>
     </section>
@@ -56,10 +56,12 @@
       <div class="mobile-saved-trip-list-heading">
         <h2 id="mobile-saved-trip-list-heading">旅のしおり</h2>
       </div>
-      <p id="mobile-saved-trip-list-status" role="status" aria-live="polite"></p>
-      <div id="mobile-saved-trip-list-items"></div>
       <div class="mobile-saved-trip-receive">
-        <button type="button" id="mobile-saved-trip-receive-show">旅行を受け取る</button>
+        <button type="button" id="mobile-saved-trip-receive-show">
+          <svg class="mobile-saved-trip-receive-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 3.5h6v6h-6zm11 0h6v6h-6zm-11 11h6v6h-6zm8 0h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm4-4h1v6h-6v-1h5z"/></svg>
+          <span class="mobile-saved-trip-receive-label">旅行を受け取る</span>
+          <span class="mobile-saved-trip-receive-arrow" aria-hidden="true">›</span>
+        </button>
         <section id="mobile-saved-trip-qr-scanner" class="mobile-saved-trip-qr-scanner" aria-labelledby="mobile-saved-trip-qr-scanner-heading" hidden>
           <div class="mobile-saved-trip-qr-scanner-content">
             <h2 id="mobile-saved-trip-qr-scanner-heading">QRコードを読み取る</h2>
@@ -70,6 +72,8 @@
           </div>
         </section>
       </div>
+      <p id="mobile-saved-trip-list-status" role="status" aria-live="polite"></p>
+      <div id="mobile-saved-trip-list-items"></div>
       <section id="mobile-saved-trip-share" class="mobile-saved-trip-share" aria-labelledby="mobile-saved-trip-share-heading" hidden>
         <div class="mobile-saved-trip-share-content" role="dialog" aria-modal="true">
           <h2 id="mobile-saved-trip-share-heading">旅行を共有</h2>
@@ -91,7 +95,7 @@
           <button type="button" id="mobile-saved-trip-share-close" class="mobile-saved-trip-share-close">閉じる</button>
         </div>
       </section>
-      <p class="mobile-staging-build" aria-label="STAGING build ID">STAGING · 7382652</p>
+      <p id="mobile-staging-build" class="mobile-staging-build" data-staging-build-id="d0b6a3e" aria-label="STAGING build ID">STAGING · d0b6a3e · PWA --</p>
     </section>
     <section id="mobile-pwa-diagnostics" class="mobile-pwa-diagnostics" aria-labelledby="mobile-pwa-diagnostics-heading" hidden>
       <button type="button" id="mobile-pwa-diagnostics-show">PWA診断を表示</button>

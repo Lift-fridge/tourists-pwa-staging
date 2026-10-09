@@ -39,26 +39,27 @@ const mobileItineraryDays = document.getElementById('mobile-itinerary-days');
 const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show');
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
+const mobileStagingBuild = document.getElementById('mobile-staging-build');
 
-const PWA_SHELL_VERSION = 'staging-7382652';
+const PWA_SHELL_VERSION = 'staging-d0b6a3e';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-7382652',
-  './mobile.js?pwa=staging-7382652',
-  './mobile.css?pwa=staging-7382652',
-  './mobile-snapshot-store.js?pwa=staging-7382652',
-  './mobile-share-request-ticket-store.js?pwa=staging-7382652',
-  './mobile-share-qr-code.js?pwa=staging-7382652',
-  './mobile-incoming-snapshot.js?pwa=staging-7382652',
-  './tourists-public-config.js?pwa=staging-7382652',
-  './assets/jsqr-1.4.0.js?pwa=staging-7382652',
-  './manifest.webmanifest?pwa=staging-7382652',
-  './assets/icon-192.png?pwa=staging-7382652',
-  './assets/icon-512.png?pwa=staging-7382652',
-  './assets/icon-maskable-512.png?pwa=staging-7382652',
-  './assets/mobile-cover.png?pwa=staging-7382652',
-  './assets/mobile-clover.svg?pwa=staging-7382652',
+  './index.html?pwa=staging-d0b6a3e',
+  './mobile.js?pwa=staging-d0b6a3e',
+  './mobile.css?pwa=staging-d0b6a3e',
+  './mobile-snapshot-store.js?pwa=staging-d0b6a3e',
+  './mobile-share-request-ticket-store.js?pwa=staging-d0b6a3e',
+  './mobile-share-qr-code.js?pwa=staging-d0b6a3e',
+  './mobile-incoming-snapshot.js?pwa=staging-d0b6a3e',
+  './tourists-public-config.js?pwa=staging-d0b6a3e',
+  './assets/jsqr-1.4.0.js?pwa=staging-d0b6a3e',
+  './manifest.webmanifest?pwa=staging-d0b6a3e',
+  './assets/icon-192.png?pwa=staging-d0b6a3e',
+  './assets/icon-512.png?pwa=staging-d0b6a3e',
+  './assets/icon-maskable-512.png?pwa=staging-d0b6a3e',
+  './assets/mobile-cover.png?pwa=staging-d0b6a3e',
+  './assets/mobile-clover.svg?pwa=staging-d0b6a3e',
 ];
 
 let selectedMobileDayKey = null;
@@ -856,7 +857,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-7382652';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-d0b6a3e';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1822,20 +1823,35 @@ async function renderSavedTripList(snapshots) {
     const title = document.createElement('span');
     title.className = 'mobile-saved-trip-list-title';
     title.textContent = mobileTripTitle(snapshot);
-    const separator = document.createElement('span');
-    separator.className = 'mobile-saved-trip-list-separator';
-    separator.setAttribute('aria-hidden', 'true');
-    separator.textContent = '｜';
     const departure = document.createElement('span');
     departure.className = 'mobile-saved-trip-list-date';
     departure.textContent = mobileDepartureDate(snapshot);
-    item.append(title, separator, departure);
-    item.addEventListener('click', () => {
+    const openSnapshot = () => {
       showSnapshot(snapshot);
       crossfadeSavedTripListToCover();
-    });
-
-    row.append(item);
+    };
+    item.addEventListener('click', openSnapshot);
+    let actions = null;
+    if (mobilePreview.enabled) {
+      const separator = document.createElement('span');
+      separator.className = 'mobile-saved-trip-list-separator';
+      separator.setAttribute('aria-hidden', 'true');
+      separator.textContent = '｜';
+      item.append(title, separator, departure);
+      row.append(item);
+    } else {
+      item.append(title);
+      const date = document.createElement('button');
+      date.type = 'button';
+      date.className = 'mobile-saved-trip-list-date-button';
+      date.setAttribute('aria-label', mobileTripTitle(snapshot) + 'を開く');
+      date.append(departure);
+      date.addEventListener('click', openSnapshot);
+      row.append(item, date);
+      actions = document.createElement('div');
+      actions.className = 'mobile-saved-trip-list-actions';
+      row.append(actions);
+    }
     if (!mobilePreview.enabled && mobileSnapshotShareIsAvailable(snapshot)
         && globalThis.MobileShareRequestTicketStore) {
       try {
@@ -1852,7 +1868,7 @@ async function renderSavedTripList(snapshots) {
             event.stopPropagation();
             void openMobileShareDialog(snapshot);
           });
-          row.append(share);
+          actions.append(share);
         }
       } catch (_) {
         // Ticket store failure keeps legacy/view/delete behavior and hides share.
@@ -1865,7 +1881,7 @@ async function renderSavedTripList(snapshots) {
       remove.textContent = '…';
       remove.setAttribute('aria-label', mobileTripTitle(snapshot) + 'をこのiPhoneから削除');
       remove.addEventListener('click', (event) => { void removeSavedTrip(snapshot, event); });
-      row.append(remove);
+      actions.append(remove);
     }
     savedTripListItems.append(row);
   }
@@ -2364,10 +2380,26 @@ async function inspectWorker(worker) {
   });
 }
 
+async function updateMobileStagingBuildVersion() {
+  const buildId = mobileStagingBuild?.getAttribute('data-staging-build-id');
+  if (!/^[0-9a-f]{7,40}$/i.test(buildId || '')) return;
+  let shellVersion = null;
+  try {
+    const scopeUrl = new URL('./', window.location.href).href;
+    const registration = await navigator.serviceWorker?.getRegistration?.(scopeUrl);
+    const worker = navigator.serviceWorker?.controller || registration?.active || null;
+    const response = await inspectWorker(worker);
+    if (/^[A-Za-z0-9-]+$/.test(response?.shellVersion || '')) shellVersion = response.shellVersion;
+  } catch (_) {
+    // The STAGING build ID remains useful offline even when no worker response is available.
+  }
+  mobileStagingBuild.textContent = 'STAGING · ' + buildId + ' · PWA ' + (shellVersion || '--');
+}
+
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v107）' : 'あり（v107確認不可）';
+    ? 'あり（v108）' : 'あり（v108確認不可）';
 }
 
 async function showPwaDiagnostics() {
@@ -2430,6 +2462,7 @@ savedTripShareVerifyButton.addEventListener('click', () => { void verifyMobileSh
 savedTripShareClose.addEventListener('click', clearMobileShareDialog);
 
 if (mobilePreview.enabled) {
+  savedTripList.setAttribute('data-mobile-preview', 'true');
   applyMobileFontSize(MOBILE_FONT_SIZE_DEFAULT);
   void loadMobilePreview(mobilePreview.tripId);
 } else {
@@ -2439,6 +2472,7 @@ if (mobilePreview.enabled) {
   savedTripReceiveShow.addEventListener('click', () => { void showSavedTripReceiveScanner(); });
   savedTripQrScannerClose.addEventListener('click', closeSavedTripReceiveScanner);
   pwaDiagnosticsShow.addEventListener('click', () => { void showPwaDiagnostics(); });
+  void updateMobileStagingBuildVersion();
   void registerMobileServiceWorker();
 }
 
