@@ -40,25 +40,25 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 
-const PWA_SHELL_VERSION = 'staging-a9ef533';
+const PWA_SHELL_VERSION = 'staging-ae12d03';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-a9ef533',
-  './mobile.js?pwa=staging-a9ef533',
-  './mobile.css?pwa=staging-a9ef533',
-  './mobile-snapshot-store.js?pwa=staging-a9ef533',
-  './mobile-share-request-ticket-store.js?pwa=staging-a9ef533',
-  './mobile-share-qr-code.js?pwa=staging-a9ef533',
-  './mobile-incoming-snapshot.js?pwa=staging-a9ef533',
-  './tourists-public-config.js?pwa=staging-a9ef533',
-  './assets/jsqr-1.4.0.js?pwa=staging-a9ef533',
-  './manifest.webmanifest?pwa=staging-a9ef533',
-  './assets/icon-192.png?pwa=staging-a9ef533',
-  './assets/icon-512.png?pwa=staging-a9ef533',
-  './assets/icon-maskable-512.png?pwa=staging-a9ef533',
-  './assets/mobile-cover.png?pwa=staging-a9ef533',
-  './assets/mobile-clover.svg?pwa=staging-a9ef533',
+  './index.html?pwa=staging-ae12d03',
+  './mobile.js?pwa=staging-ae12d03',
+  './mobile.css?pwa=staging-ae12d03',
+  './mobile-snapshot-store.js?pwa=staging-ae12d03',
+  './mobile-share-request-ticket-store.js?pwa=staging-ae12d03',
+  './mobile-share-qr-code.js?pwa=staging-ae12d03',
+  './mobile-incoming-snapshot.js?pwa=staging-ae12d03',
+  './tourists-public-config.js?pwa=staging-ae12d03',
+  './assets/jsqr-1.4.0.js?pwa=staging-ae12d03',
+  './manifest.webmanifest?pwa=staging-ae12d03',
+  './assets/icon-192.png?pwa=staging-ae12d03',
+  './assets/icon-512.png?pwa=staging-ae12d03',
+  './assets/icon-maskable-512.png?pwa=staging-ae12d03',
+  './assets/mobile-cover.png?pwa=staging-ae12d03',
+  './assets/mobile-clover.svg?pwa=staging-ae12d03',
 ];
 
 let selectedMobileDayKey = null;
@@ -836,7 +836,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-a9ef533';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-ae12d03';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -2167,38 +2167,9 @@ function mobileReceiveDiagnosticCode(error) {
   return match ? match[1] : 'UNEXPECTED';
 }
 
-async function fetchTouristsTemporaryTransfer(token) {
-  // GitHub Pagesでも同じ受取経路を使う。公開可能なURL/keyだけを静的configから読む。
-  const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
-  if (!config) throw mobileReceiveStageError('RECEIVE_CONFIG');
-  let response;
-  try {
-    response = await fetch(config.url + '/rest/v1/rpc/receive_tourists_temporary_transfer', {
-      method: 'POST',
-      credentials: 'omit',
-      cache: 'no-store',
-      headers: {'apikey': config.key, 'Content-Type': 'application/json'},
-      body: JSON.stringify({p_token: token}),
-    });
-  } catch (_) {
-    throw mobileReceiveStageError('RECEIVE_NETWORK');
-  }
-  if (!response.ok) throw mobileReceiveHttpError('RECEIVE', response);
-  let snapshot;
-  try {
-    snapshot = await response.json();
-  } catch (_) {
-    throw mobileReceiveStageError('RECEIVE_RESPONSE');
-  }
-  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
-    throw mobileReceiveStageError('RECEIVE_RESPONSE');
-  }
-  return snapshot;
-}
-
 async function claimTouristsTemporaryTransfer(token) {
   const config = touristsTransferConfig(globalThis.TouristsPublicConfig);
-  if (!config) return null;
+  if (!config) throw mobileReceiveStageError('CLAIM_CONFIG');
   let response;
   try {
     response = await fetch(config.url + '/rest/v1/rpc/claim_tourists_temporary_transfer', {
@@ -2211,14 +2182,16 @@ async function claimTouristsTemporaryTransfer(token) {
   } catch (_) {
     throw mobileReceiveStageError('CLAIM_NETWORK');
   }
-  if (!response.ok) return null;
+  if (!response.ok) throw mobileReceiveHttpError('CLAIM', response);
   let result;
   try {
     result = await response.json();
   } catch (_) {
     throw mobileReceiveStageError('CLAIM_RESPONSE');
   }
-  return result && typeof result === 'object' && !Array.isArray(result) ? result : null;
+  if (result === null) throw mobileReceiveStageError('CLAIM_EMPTY');
+  if (typeof result !== 'object' || Array.isArray(result)) throw mobileReceiveStageError('CLAIM_RESPONSE');
+  return result;
 }
 
 async function finalizeTouristsTemporaryTransferReceive(claimId) {
@@ -2276,25 +2249,19 @@ async function receiveTouristsTemporaryTransfer(token) {
   savedTripReceiveShow.disabled = true;
   try {
     const claim = await claimTouristsTemporaryTransfer(token);
-    if (claim) {
-      if (typeof claim.claim_id !== 'string' || !claim.snapshot) throw mobileReceiveStageError('CLAIM_RESPONSE');
-      const snapshot = await saveValidatedMobileSnapshot(claim.snapshot);
-      const finalized = await finalizeTouristsTemporaryTransferReceive(claim.claim_id);
-      const ticket = finalized?.share_request_ticket;
-      if (!globalThis.MobileShareRequestTicketStore?.validTicket(ticket)) throw mobileReceiveStageError('TICKET_RESPONSE');
-      try {
-        await globalThis.MobileShareRequestTicketStore.save(
-          globalThis.MobileSnapshotStore.tripKey(snapshot), ticket,
-        );
-      } catch (_) {
-        throw mobileReceiveStageError('TICKET_STORAGE');
-      }
-      homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
-    } else {
-      const snapshot = await fetchTouristsTemporaryTransfer(token);
-      await saveValidatedMobileSnapshot(snapshot);
-      homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
+    if (typeof claim.claim_id !== 'string' || !claim.snapshot) throw mobileReceiveStageError('CLAIM_RESPONSE');
+    const snapshot = await saveValidatedMobileSnapshot(claim.snapshot);
+    const finalized = await finalizeTouristsTemporaryTransferReceive(claim.claim_id);
+    const ticket = finalized?.share_request_ticket;
+    if (!globalThis.MobileShareRequestTicketStore?.validTicket(ticket)) throw mobileReceiveStageError('TICKET_RESPONSE');
+    try {
+      await globalThis.MobileShareRequestTicketStore.save(
+        globalThis.MobileSnapshotStore.tripKey(snapshot), ticket,
+      );
+    } catch (_) {
+      throw mobileReceiveStageError('TICKET_STORAGE');
     }
+    homeMessage.textContent = '✓ ' + mobileTripTitle(snapshot) + 'をこのiPhoneに保存しました。';
   } catch (error) {
     // finalize失敗後もsave済みsnapshotは残る。raw Ticketや内部エラーは表示しない。
     savedTripListStatus.textContent = '旅行を受け取れませんでした。保存済み旅行を確認してください。（診断: '
@@ -2375,7 +2342,7 @@ async function inspectWorker(worker) {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v105）' : 'あり（v105確認不可）';
+    ? 'あり（v106）' : 'あり（v106確認不可）';
 }
 
 async function showPwaDiagnostics() {
