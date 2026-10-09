@@ -4,7 +4,7 @@
 // transfer tokenや認証情報は引数にもrecordにも持ち込まない。
 globalThis.MobileSnapshotStore = (() => {
   const DATABASE_NAME = 'travel-shiori-mobile-snapshots-staging';
-  const DATABASE_VERSION = 4;
+  const DATABASE_VERSION = 5;
   const STORE_NAME = 'trips';
   const PREFERENCES_STORE_NAME = 'preferences';
   const SHARE_REQUEST_TICKET_STORE_NAME = 'share_request_tickets';
@@ -22,10 +22,18 @@ globalThis.MobileSnapshotStore = (() => {
   }
 
   function validSnapshot(snapshot) {
-    return Boolean(tripKey(snapshot) && snapshot.trip && typeof snapshot.trip.title === 'string'
-      && snapshot.trip.title.trim() && Array.isArray(snapshot.days)
-      && Array.isArray(snapshot.candidates) && Array.isArray(snapshot.places)
-      && Array.isArray(snapshot.memo_pages));
+    const departure = snapshot?.trip?.departure_date;
+    const returnDate = snapshot?.trip?.return_date;
+    if (snapshot?.schema_version !== 3 || !tripKey(snapshot) || typeof snapshot?.trip?.title !== 'string'
+        || !snapshot.trip.title.trim() || !Array.isArray(snapshot.days) || !Array.isArray(snapshot.candidates)
+        || !Array.isArray(snapshot.places) || !Array.isArray(snapshot.memo_pages)
+        || typeof departure !== 'string' || typeof returnDate !== 'string'
+        || !/^\d{4}-\d{2}-\d{2}$/.test(departure) || !/^\d{4}-\d{2}-\d{2}$/.test(returnDate)) return false;
+    const start = new Date(departure + 'T00:00:00Z');
+    const end = new Date(returnDate + 'T00:00:00Z');
+    return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())
+      && start.toISOString().slice(0, 10) === departure && end.toISOString().slice(0, 10) === returnDate
+      && end >= start && (end - start) / 86400000 <= 365;
   }
 
   function openDatabase(indexedDb = globalThis.indexedDB) {
@@ -39,13 +47,15 @@ globalThis.MobileSnapshotStore = (() => {
       }
       request.onupgradeneeded = () => {
         const database = request.result;
-        if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, {keyPath: 'trip_key'});
+        // v5はv3専用の空旅行・共有ticketストアから開始する。端末表示設定は保持する。
+        for (const name of [STORE_NAME, SHARE_REQUEST_TICKET_STORE_NAME]) {
+          if (database.objectStoreNames.contains(name)) database.deleteObjectStore(name);
+        }
+        database.createObjectStore(STORE_NAME, {keyPath: 'trip_key'});
         if (!database.objectStoreNames.contains(PREFERENCES_STORE_NAME)) {
           database.createObjectStore(PREFERENCES_STORE_NAME, {keyPath: 'key'});
         }
-        if (!database.objectStoreNames.contains(SHARE_REQUEST_TICKET_STORE_NAME)) {
-          database.createObjectStore(SHARE_REQUEST_TICKET_STORE_NAME, {keyPath: 'trip_key'});
-        }
+        database.createObjectStore(SHARE_REQUEST_TICKET_STORE_NAME, {keyPath: 'trip_key'});
       };
       request.onerror = () => reject(storageError());
       request.onblocked = () => reject(storageError());

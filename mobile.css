@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-d0b6a3e') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-4f57754') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -65,18 +65,19 @@ h1 { margin: .35rem 0 0; color: var(--mobile-ink); font-size: clamp(24px, 7vw, 3
 .mobile-saved-trip-list-heading h2 { margin: 0; font-family: var(--mobile-font-serif); font-size: var(--mobile-font-saved-heading); font-weight: 500; }
 #mobile-saved-trip-list-status { margin: .75rem 0 0; color: var(--mobile-muted); font-size: var(--mobile-font-base); }
 #mobile-saved-trip-list-items { margin-top: .75rem; }
-.mobile-saved-trip-list-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title title' 'date actions'; column-gap: .5rem; row-gap: .2rem; align-items: center; border-top: 1px solid var(--mobile-rule); padding: .7rem 0 .55rem; }
+.mobile-saved-trip-list-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title title' 'date actions'; column-gap: .5rem; row-gap: 0; align-items: start; border-top: 1px solid var(--mobile-rule); padding: .4rem 0 .3rem; }
 .mobile-saved-trip-list-row:last-child { border-bottom: 1px solid var(--mobile-rule); }
-.mobile-saved-trip-list-item { grid-area: title; min-width: 0; min-height: 40px; border: 0; padding: 0; color: var(--mobile-ink); background: transparent; font: inherit; font-size: var(--mobile-font-base); text-align: left; }
+.mobile-saved-trip-list-item { position: relative; grid-area: title; min-width: 0; border: 0; padding: 0; color: var(--mobile-ink); background: transparent; font: inherit; font-size: var(--mobile-font-base); text-align: left; }
 .mobile-saved-trip-list-item[aria-current="page"] { color: var(--mobile-green); }
+.mobile-saved-trip-list-item::after, .mobile-saved-trip-list-date-button::after { position: absolute; inset: -.2rem 0; content: ''; }
 .mobile-saved-trip-list-item:focus-visible, .mobile-saved-trip-list-date-button:focus-visible, .mobile-saved-trip-delete:focus-visible { outline: 3px solid #9ba99b; outline-offset: 2px; }
 .mobile-saved-trip-list-title { display: -webkit-box; overflow: hidden; max-height: 2.7em; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.mobile-saved-trip-list-date-button { grid-area: date; justify-self: start; min-height: 40px; border: 0; padding: 0; color: var(--mobile-muted); background: transparent; font: inherit; font-size: var(--mobile-font-prose); text-align: left; }
-.mobile-saved-trip-list-date { white-space: nowrap; }
-.mobile-saved-trip-list-actions { grid-area: actions; display: flex; align-items: center; justify-self: end; gap: .15rem; }
-.mobile-saved-trip-delete { width: 40px; min-height: 40px; border: 0; padding: 0; color: var(--mobile-muted); background: transparent; font: inherit; font-size: 20px; line-height: 1; }
+.mobile-saved-trip-list-date-button { position: relative; grid-area: date; min-width: 0; max-width: 100%; justify-self: start; border: 0; padding: 0; overflow: hidden; color: var(--mobile-muted); background: transparent; font: inherit; font-size: var(--mobile-font-prose); line-height: 1.35; text-align: left; }
+.mobile-saved-trip-list-date { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mobile-saved-trip-list-actions { grid-area: actions; display: flex; min-height: 36px; align-items: start; justify-self: end; gap: .15rem; }
+.mobile-saved-trip-delete { width: 36px; min-height: 36px; border: 0; padding: 0; color: var(--mobile-muted); background: transparent; font: inherit; font-size: 20px; line-height: 1; }
 .mobile-saved-trip-delete:hover { color: var(--mobile-ink); }
-.mobile-saved-trip-share-button { min-height: 40px; border: 0; padding: 0 .35rem; color: var(--mobile-muted); background: transparent; font: inherit; font-size: var(--mobile-font-prose); }
+.mobile-saved-trip-share-button { min-height: 36px; border: 0; padding: 0 .35rem; color: var(--mobile-muted); background: transparent; font: inherit; font-size: var(--mobile-font-prose); }
 .mobile-saved-trip-share-button:hover { color: var(--mobile-ink); }
 .mobile-saved-trip-share-button:focus-visible, .mobile-saved-trip-share-close:focus-visible, #mobile-saved-trip-share-send:focus-visible, #mobile-saved-trip-share-verify-button:focus-visible { outline: 3px solid #9ba99b; outline-offset: 2px; }
 .mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'title'; padding: 0; }

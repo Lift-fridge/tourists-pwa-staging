@@ -1,7 +1,7 @@
 'use strict';
 
-// Supabase temporary transferから受け取るsnapshot v2/v3を保存前に検証する。
-// 既存のMobileSnapshotStore.validSnapshot()は保存済み旧snapshotとの互換用なので変更しない。
+// Supabase temporary transferから受け取る正式snapshot v3を保存前に検証する。
+// MobileSnapshotStoreもv3だけを保存・読込する。
 globalThis.MobileIncomingSnapshot = (() => {
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const TIME = /^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/;
@@ -11,10 +11,8 @@ globalThis.MobileIncomingSnapshot = (() => {
   const MAX_INFORMATION_LENGTH = 20000;
   const MAX_MEMO_BODY_LENGTH = 20000;
   const TOP_FIELDS = ['schema_version', 'snapshot_id', 'created_at', 'content_hash', 'trip_key', 'trip', 'places', 'days', 'candidates', 'memo_pages'];
-  const TRIP_FIELDS_V2 = ['title', 'destination', 'departure_date', 'nights', 'interests', 'pace', 'fixed_schedule'];
-  const TRIP_FIELDS_V3 = ['title', 'destination', 'departure_date', 'return_date', 'interests', 'pace', 'fixed_schedule'];
+  const TRIP_FIELDS = ['title', 'destination', 'departure_date', 'return_date', 'interests', 'pace', 'fixed_schedule'];
   const DAY_FIELDS = ['day_key', 'day_number', 'date', 'summary', 'notes', 'holiday_name', 'items'];
-  const LEGACY_DAY_FIELDS = ['day_key', 'day_number', 'date', 'summary', 'notes', 'items'];
   const ITEM_FIELDS = ['card_key', 'start_time', 'end_time', 'title', 'item_type', 'information', 'origin', 'destination', 'transport_mode', 'place_key', 'maps_url', 'website_location_url', 'website_additional_url', 'website_url', 'placement'];
   const FORMAL_ITEM_FIELDS = [...ITEM_FIELDS, 'options'];
   const CANDIDATE_FIELDS = [...ITEM_FIELDS, 'candidate_origin'];
@@ -123,26 +121,19 @@ globalThis.MobileIncomingSnapshot = (() => {
 
   function snapshotTravelDayCount(snapshot) {
     const trip = snapshot?.trip;
-    if (!trip || !validDate(trip.departure_date)) return null;
-    if (snapshot.schema_version === 2) {
-      return Number.isInteger(trip.nights) && trip.nights >= 0 && trip.nights <= 365 ? trip.nights + 1 : null;
-    }
-    if (snapshot.schema_version === 3 && validDate(trip.return_date)) {
-      const start = new Date(trip.departure_date + 'T00:00:00Z');
-      const end = new Date(trip.return_date + 'T00:00:00Z');
-      const count = Math.round((end - start) / 86400000) + 1;
-      return Number.isInteger(count) && count >= 1 && count <= 366 ? count : null;
-    }
-    return null;
+    if (snapshot?.schema_version !== 3 || !trip || !validDate(trip.departure_date) || !validDate(trip.return_date)) return null;
+    const start = new Date(trip.departure_date + 'T00:00:00Z');
+    const end = new Date(trip.return_date + 'T00:00:00Z');
+    const count = Math.round((end - start) / 86400000) + 1;
+    return Number.isInteger(count) && count >= 1 && count <= 366 ? count : null;
   }
 
   async function validSnapshot(snapshot, cryptoApi = globalThis.crypto) {
     try {
-      if (!exactFields(snapshot, TOP_FIELDS) || ![2, 3].includes(snapshot.schema_version)
+      if (!exactFields(snapshot, TOP_FIELDS) || snapshot.schema_version !== 3
           || !UUID.test(snapshot.snapshot_id) || !UUID.test(snapshot.trip_key)
           || !validCreatedAt(snapshot.created_at) || !HASH.test(snapshot.content_hash)) return false;
-      const tripFields = snapshot.schema_version === 2 ? TRIP_FIELDS_V2 : TRIP_FIELDS_V3;
-      if (!exactFields(snapshot.trip, tripFields)
+      if (!exactFields(snapshot.trip, TRIP_FIELDS)
           || !safeText(snapshot.trip.title, {required: true, limit: 200})
           || !safeText(snapshot.trip.destination, {required: true, limit: 100})
           || !validDate(snapshot.trip.departure_date)
@@ -168,11 +159,10 @@ globalThis.MobileIncomingSnapshot = (() => {
         const day = snapshot.days[index];
         const number = index + 1;
         const key = 'day-' + number;
-        if (!(exactFields(day, DAY_FIELDS) || exactFields(day, LEGACY_DAY_FIELDS)) || day.day_key !== key || day.day_number !== number
+        if (!exactFields(day, DAY_FIELDS) || day.day_key !== key || day.day_number !== number
             || !validDate(day.date) || !safeText(day.summary, {limit: 200})
-            || !safeText(day.notes, {limit: 2000}) || !Array.isArray(day.items)) return false;
-        if (Object.prototype.hasOwnProperty.call(day, 'holiday_name')
-            && !safeText(day.holiday_name, {limit: 200})) return false;
+            || !safeText(day.notes, {limit: 2000}) || !safeText(day.holiday_name, {limit: 200})
+            || !Array.isArray(day.items)) return false;
         const expectedDate = new Date(snapshot.trip.departure_date + 'T00:00:00Z');
         expectedDate.setUTCDate(expectedDate.getUTCDate() + index);
         if (expectedDate.toISOString().slice(0, 10) !== day.date) return false;

@@ -2,7 +2,8 @@
 
 // GitHub Pagesのproject siteでも、Workerの登録scopeを基準にshellを解決する。
 const CACHE_PREFIX = 'travel-shiori-staging-shell-';
-const SHELL_VERSION = 'staging-d0b6a3e';
+const SHELL_VERSION = 'staging-4f57754';
+const PWA_SHELL_VERSION = 'v109';
 const CACHE_NAME = CACHE_PREFIX + SHELL_VERSION;
 const SCOPE_URL = new URL(self.registration.scope);
 const SHELL_PATHS = [
@@ -49,10 +50,10 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 診断画面だけが使うread-only応答。Worker更新、cache削除、通信は行わない。
+// STAGING表示と診断画面だけが使うread-only応答。Worker更新、cache削除、通信は行わない。
 self.addEventListener('message', (event) => {
   if (event.data?.type !== 'travel-shiori-pwa-diagnostic' || !event.ports?.[0]) return;
-  event.ports[0].postMessage({shellVersion: SHELL_VERSION, cacheName: CACHE_NAME});
+  event.ports[0].postMessage({shellVersion: PWA_SHELL_VERSION, cacheName: CACHE_NAME});
 });
 
 async function cachedShellFirst(request, cacheKey) {

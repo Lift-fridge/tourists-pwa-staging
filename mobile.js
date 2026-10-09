@@ -41,25 +41,25 @@ const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-res
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 const mobileStagingBuild = document.getElementById('mobile-staging-build');
 
-const PWA_SHELL_VERSION = 'staging-d0b6a3e';
+const PWA_SHELL_VERSION = 'staging-4f57754';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-d0b6a3e',
-  './mobile.js?pwa=staging-d0b6a3e',
-  './mobile.css?pwa=staging-d0b6a3e',
-  './mobile-snapshot-store.js?pwa=staging-d0b6a3e',
-  './mobile-share-request-ticket-store.js?pwa=staging-d0b6a3e',
-  './mobile-share-qr-code.js?pwa=staging-d0b6a3e',
-  './mobile-incoming-snapshot.js?pwa=staging-d0b6a3e',
-  './tourists-public-config.js?pwa=staging-d0b6a3e',
-  './assets/jsqr-1.4.0.js?pwa=staging-d0b6a3e',
-  './manifest.webmanifest?pwa=staging-d0b6a3e',
-  './assets/icon-192.png?pwa=staging-d0b6a3e',
-  './assets/icon-512.png?pwa=staging-d0b6a3e',
-  './assets/icon-maskable-512.png?pwa=staging-d0b6a3e',
-  './assets/mobile-cover.png?pwa=staging-d0b6a3e',
-  './assets/mobile-clover.svg?pwa=staging-d0b6a3e',
+  './index.html?pwa=staging-4f57754',
+  './mobile.js?pwa=staging-4f57754',
+  './mobile.css?pwa=staging-4f57754',
+  './mobile-snapshot-store.js?pwa=staging-4f57754',
+  './mobile-share-request-ticket-store.js?pwa=staging-4f57754',
+  './mobile-share-qr-code.js?pwa=staging-4f57754',
+  './mobile-incoming-snapshot.js?pwa=staging-4f57754',
+  './tourists-public-config.js?pwa=staging-4f57754',
+  './assets/jsqr-1.4.0.js?pwa=staging-4f57754',
+  './manifest.webmanifest?pwa=staging-4f57754',
+  './assets/icon-192.png?pwa=staging-4f57754',
+  './assets/icon-512.png?pwa=staging-4f57754',
+  './assets/icon-maskable-512.png?pwa=staging-4f57754',
+  './assets/mobile-cover.png?pwa=staging-4f57754',
+  './assets/mobile-clover.svg?pwa=staging-4f57754',
 ];
 
 let selectedMobileDayKey = null;
@@ -155,31 +155,33 @@ function mobileTripTitle(snapshot) {
   return typeof title === 'string' && title.trim() && title.length <= 200 ? title.trim() : null;
 }
 
+function mobileIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const parsed = new Date(value + 'T00:00:00Z');
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : null;
+}
+
 function mobileDepartureDate(snapshot) {
-  const departure = snapshot?.trip?.departure_date;
-  return typeof departure === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(departure) ? departure : null;
+  return mobileIsoDate(snapshot?.trip?.departure_date);
 }
 
 function mobileDateRange(snapshot) {
+  if (snapshot?.schema_version !== 3) return null;
   const departure = mobileDepartureDate(snapshot);
-  const returnDate = snapshot?.trip?.return_date;
-  const nights = snapshot?.trip?.nights;
-  if (!departure) return null;
+  const returnDate = mobileIsoDate(snapshot.trip?.return_date);
+  if (!departure || !returnDate) return null;
   const start = new Date(departure + 'T00:00:00Z');
-  if (Number.isNaN(start.getTime())) return null;
-  let end = null;
-  if (snapshot?.schema_version === 3 && typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
-    end = new Date(returnDate + 'T00:00:00Z');
-    if (Number.isNaN(end.getTime()) || end < start || (end - start) / 86400000 > 365) return null;
-  } else if (snapshot?.schema_version === 2 && Number.isInteger(nights) && nights >= 0 && nights <= 365) {
-    end = new Date(start.getTime());
-    end.setUTCDate(end.getUTCDate() + nights);
-  }
-  if (!end) return null;
+  const end = new Date(returnDate + 'T00:00:00Z');
+  if (end < start || (end - start) / 86400000 > 365) return null;
   const format = (value) => new Intl.DateTimeFormat('ja-JP', {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'short', timeZone: 'UTC',
   }).format(value);
   return format(start) + '〜' + format(end);
+}
+
+function mobileSavedTripDateRange(snapshot) {
+  const departure = mobileDepartureDate(snapshot);
+  return departure && mobileDateRange(snapshot) ? departure + ' 〜 ' + snapshot.trip.return_date : departure;
 }
 
 function mobileShareExpiryDate(snapshot) {
@@ -322,12 +324,6 @@ function appendMobileItineraryLinks(parent, item) {
   if (locationUrl) websiteUrls.push({url: locationUrl, kind: 'location', label: '場所のWebサイトを開く'});
   if (additionalUrl && !websiteUrls.some((entry) => entry.url === additionalUrl)) {
     websiteUrls.push({url: additionalUrl, kind: 'additional', label: '追加Webサイトを開く'});
-  }
-  // Step 1以前の保存済みv2 snapshotだけは、既存の実効URLを1件として読む。
-  if (!Object.prototype.hasOwnProperty.call(item, 'website_location_url')
-      && !Object.prototype.hasOwnProperty.call(item, 'website_additional_url')) {
-    const legacyUrl = mobileExternalUrl(item.website_url);
-    if (legacyUrl) websiteUrls.push({url: legacyUrl, kind: 'location', label: 'Webサイトを開く'});
   }
   websiteUrls.forEach((entry) => appendMobileExternalLink(links, entry.url, entry.label, entry.kind));
   if (links.childElementCount) parent.append(links);
@@ -857,7 +853,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-d0b6a3e';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-4f57754';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1825,7 +1821,7 @@ async function renderSavedTripList(snapshots) {
     title.textContent = mobileTripTitle(snapshot);
     const departure = document.createElement('span');
     departure.className = 'mobile-saved-trip-list-date';
-    departure.textContent = mobileDepartureDate(snapshot);
+    departure.textContent = mobilePreview.enabled ? mobileDepartureDate(snapshot) : mobileSavedTripDateRange(snapshot);
     const openSnapshot = () => {
       showSnapshot(snapshot);
       crossfadeSavedTripListToCover();
@@ -2382,14 +2378,15 @@ async function inspectWorker(worker) {
 
 async function updateMobileStagingBuildVersion() {
   const buildId = mobileStagingBuild?.getAttribute('data-staging-build-id');
-  if (!/^[0-9a-f]{7,40}$/i.test(buildId || '')) return;
+  const expectedVersion = mobileStagingBuild?.getAttribute('data-staging-pwa-version');
+  if (!/^[0-9a-f]{7,40}$/i.test(buildId || '') || !/^v[0-9]+$/.test(expectedVersion || '')) return;
   let shellVersion = null;
   try {
     const scopeUrl = new URL('./', window.location.href).href;
     const registration = await navigator.serviceWorker?.getRegistration?.(scopeUrl);
     const worker = navigator.serviceWorker?.controller || registration?.active || null;
     const response = await inspectWorker(worker);
-    if (/^[A-Za-z0-9-]+$/.test(response?.shellVersion || '')) shellVersion = response.shellVersion;
+    if (response?.shellVersion === expectedVersion) shellVersion = response.shellVersion;
   } catch (_) {
     // The STAGING build ID remains useful offline even when no worker response is available.
   }
@@ -2399,7 +2396,7 @@ async function updateMobileStagingBuildVersion() {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v108）' : 'あり（v108確認不可）';
+    ? 'あり（v109）' : 'あり（v109確認不可）';
 }
 
 async function showPwaDiagnostics() {

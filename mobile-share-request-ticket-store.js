@@ -4,7 +4,7 @@
 // raw値はこのstoreのticket fieldにだけ保持し、local/session storageやsnapshotへ出さない。
 globalThis.MobileShareRequestTicketStore = (() => {
   const DATABASE_NAME = 'travel-shiori-mobile-snapshots';
-  const DATABASE_VERSION = 4;
+  const DATABASE_VERSION = 5;
   const STORE_NAME = 'share_request_tickets';
   const TRIPS_STORE_NAME = 'trips';
   const PREFERENCES_STORE_NAME = 'preferences';
@@ -22,11 +22,15 @@ globalThis.MobileShareRequestTicketStore = (() => {
       try { request = indexedDb.open(DATABASE_NAME, DATABASE_VERSION); } catch (_) { return reject(storageError()); }
       request.onupgradeneeded = () => {
         const database = request.result;
-        if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, {keyPath: 'trip_key'});
-        if (!database.objectStoreNames.contains(TRIPS_STORE_NAME)) database.createObjectStore(TRIPS_STORE_NAME, {keyPath: 'trip_key'});
+        // v5はv3専用の空旅行・共有ticketストアから開始する。端末表示設定は保持する。
+        for (const name of [TRIPS_STORE_NAME, STORE_NAME]) {
+          if (database.objectStoreNames.contains(name)) database.deleteObjectStore(name);
+        }
+        database.createObjectStore(TRIPS_STORE_NAME, {keyPath: 'trip_key'});
         if (!database.objectStoreNames.contains(PREFERENCES_STORE_NAME)) {
           database.createObjectStore(PREFERENCES_STORE_NAME, {keyPath: 'key'});
         }
+        database.createObjectStore(STORE_NAME, {keyPath: 'trip_key'});
       };
       request.onerror = () => reject(storageError());
       request.onblocked = () => reject(storageError());
