@@ -4,9 +4,10 @@
 // transfer tokenや認証情報は引数にもrecordにも持ち込まない。
 globalThis.MobileSnapshotStore = (() => {
   const DATABASE_NAME = 'travel-shiori-mobile-snapshots-staging';
-  const DATABASE_VERSION = 2;
+  const DATABASE_VERSION = 4;
   const STORE_NAME = 'trips';
   const PREFERENCES_STORE_NAME = 'preferences';
+  const SHARE_REQUEST_TICKET_STORE_NAME = 'share_request_tickets';
   const FONT_SIZE_KEY = 'font_size';
   const FONT_SIZES = new Set(['small', 'medium', 'large']);
   const TRIP_KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -41,6 +42,9 @@ globalThis.MobileSnapshotStore = (() => {
         if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, {keyPath: 'trip_key'});
         if (!database.objectStoreNames.contains(PREFERENCES_STORE_NAME)) {
           database.createObjectStore(PREFERENCES_STORE_NAME, {keyPath: 'key'});
+        }
+        if (!database.objectStoreNames.contains(SHARE_REQUEST_TICKET_STORE_NAME)) {
+          database.createObjectStore(SHARE_REQUEST_TICKET_STORE_NAME, {keyPath: 'trip_key'});
         }
       };
       request.onerror = () => reject(storageError());

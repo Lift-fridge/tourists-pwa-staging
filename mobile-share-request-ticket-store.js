@@ -4,8 +4,10 @@
 // raw値はこのstoreのticket fieldにだけ保持し、local/session storageやsnapshotへ出さない。
 globalThis.MobileShareRequestTicketStore = (() => {
   const DATABASE_NAME = 'travel-shiori-mobile-snapshots';
-  const DATABASE_VERSION = 3;
+  const DATABASE_VERSION = 4;
   const STORE_NAME = 'share_request_tickets';
+  const TRIPS_STORE_NAME = 'trips';
+  const PREFERENCES_STORE_NAME = 'preferences';
   const TRIP_KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const TICKET = /^[A-Za-z0-9_-]{43}$/;
 
@@ -21,6 +23,10 @@ globalThis.MobileShareRequestTicketStore = (() => {
       request.onupgradeneeded = () => {
         const database = request.result;
         if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, {keyPath: 'trip_key'});
+        if (!database.objectStoreNames.contains(TRIPS_STORE_NAME)) database.createObjectStore(TRIPS_STORE_NAME, {keyPath: 'trip_key'});
+        if (!database.objectStoreNames.contains(PREFERENCES_STORE_NAME)) {
+          database.createObjectStore(PREFERENCES_STORE_NAME, {keyPath: 'key'});
+        }
       };
       request.onerror = () => reject(storageError());
       request.onblocked = () => reject(storageError());
