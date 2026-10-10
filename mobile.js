@@ -40,26 +40,28 @@ const pwaDiagnosticsShow = document.getElementById('mobile-pwa-diagnostics-show'
 const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-result');
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 const mobileStagingBuild = document.getElementById('mobile-staging-build');
+const mobileSwipeDiagnostics = document.getElementById('mobile-swipe-diagnostics');
+const mobileSwipeDiagnosticsResult = document.getElementById('mobile-swipe-diagnostics-result');
 
-const PWA_SHELL_VERSION = 'staging-014beeb';
+const PWA_SHELL_VERSION = 'staging-9b6f798';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-014beeb',
-  './mobile.js?pwa=staging-014beeb',
-  './mobile.css?pwa=staging-014beeb',
-  './mobile-snapshot-store.js?pwa=staging-014beeb',
-  './mobile-share-request-ticket-store.js?pwa=staging-014beeb',
-  './mobile-share-qr-code.js?pwa=staging-014beeb',
-  './mobile-incoming-snapshot.js?pwa=staging-014beeb',
-  './tourists-public-config.js?pwa=staging-014beeb',
-  './assets/jsqr-1.4.0.js?pwa=staging-014beeb',
-  './manifest.webmanifest?pwa=staging-014beeb',
-  './assets/icon-192.png?pwa=staging-014beeb',
-  './assets/icon-512.png?pwa=staging-014beeb',
-  './assets/icon-maskable-512.png?pwa=staging-014beeb',
-  './assets/mobile-cover.png?pwa=staging-014beeb',
-  './assets/mobile-clover.svg?pwa=staging-014beeb',
+  './index.html?pwa=staging-9b6f798',
+  './mobile.js?pwa=staging-9b6f798',
+  './mobile.css?pwa=staging-9b6f798',
+  './mobile-snapshot-store.js?pwa=staging-9b6f798',
+  './mobile-share-request-ticket-store.js?pwa=staging-9b6f798',
+  './mobile-share-qr-code.js?pwa=staging-9b6f798',
+  './mobile-incoming-snapshot.js?pwa=staging-9b6f798',
+  './tourists-public-config.js?pwa=staging-9b6f798',
+  './assets/jsqr-1.4.0.js?pwa=staging-9b6f798',
+  './manifest.webmanifest?pwa=staging-9b6f798',
+  './assets/icon-192.png?pwa=staging-9b6f798',
+  './assets/icon-512.png?pwa=staging-9b6f798',
+  './assets/icon-maskable-512.png?pwa=staging-9b6f798',
+  './assets/mobile-cover.png?pwa=staging-9b6f798',
+  './assets/mobile-clover.svg?pwa=staging-9b6f798',
 ];
 
 let selectedMobileDayKey = null;
@@ -113,6 +115,86 @@ function mobilePreviewRequest() {
 }
 
 const mobilePreview = mobilePreviewRequest();
+
+function mobileSwipeDiagnosticsRequested() {
+  if (!mobileSwipeDiagnostics || !window.location || typeof window.location.search !== 'string') return false;
+  return new URLSearchParams(window.location.search).get('swipe-debug') === '1';
+}
+
+const mobileSwipeDiagnosticsEnabled = mobileSwipeDiagnosticsRequested();
+const mobileSwipeDiagnosticEntries = [];
+const MOBILE_SWIPE_DIAGNOSTIC_LIMIT = 80;
+
+function mobileSwipeDiagnosticBox(element) {
+  const rect = element?.getBoundingClientRect?.();
+  if (!rect || typeof rect.top !== 'number' || typeof rect.height !== 'number') return null;
+  return {top: Math.round(rect.top), height: Math.round(rect.height)};
+}
+
+function mobileSwipeDiagnosticEventTarget(event) {
+  const target = event?.target;
+  if (!target) return 'unknown';
+  const tag = typeof target.tagName === 'string' ? target.tagName.toLowerCase() : 'node';
+  const id = typeof target.id === 'string' && target.id ? '#' + target.id.slice(0, 80) : '';
+  const className = typeof target.className === 'string' && target.className
+    ? '.' + target.className.split(/\s+/)[0].slice(0, 80) : '';
+  return tag + id + className;
+}
+
+function mobileSwipeDiagnosticTouchEvent(event) {
+  return {
+    target: mobileSwipeDiagnosticEventTarget(event),
+    cancelable: Boolean(event?.cancelable),
+    default_prevented: Boolean(event?.defaultPrevented),
+  };
+}
+
+function mobileSwipeDiagnosticTarget(target) {
+  if (!target) return 'none';
+  if (target.kind === 'tab') return 'tab:' + target.tab;
+  if (target.kind === 'day') return target.direction > 0 ? 'day:next' : 'day:previous';
+  return target.kind;
+}
+
+function mobileSwipeDiagnosticGesture(gesture) {
+  if (!gesture) return null;
+  return {
+    mode: gesture.mode || null,
+    direction: gesture.direction || null,
+    dx: Math.round((gesture.currentX || 0) - (gesture.startX || 0)),
+    dy: Math.round((gesture.currentY || 0) - (gesture.startY || 0)),
+    at_top: Boolean(gesture.atTop),
+    at_bottom: Boolean(gesture.atBottom),
+    tab_overlay: Boolean(gesture.tabSwipe),
+    day_overlay: Boolean(gesture.daySwipe),
+  };
+}
+
+function mobileSwipeDiagnostic(type, details = {}) {
+  if (!mobileSwipeDiagnosticsEnabled || !mobileSwipeDiagnosticsResult) return;
+  const entry = {type, ...details};
+  mobileSwipeDiagnosticEntries.push(JSON.stringify(entry));
+  if (mobileSwipeDiagnosticEntries.length > MOBILE_SWIPE_DIAGNOSTIC_LIMIT) mobileSwipeDiagnosticEntries.shift();
+  mobileSwipeDiagnosticsResult.textContent = mobileSwipeDiagnosticEntries.join('\n');
+  mobileSwipeDiagnosticsResult.scrollTop = mobileSwipeDiagnosticsResult.scrollHeight;
+}
+
+async function updateMobileSwipeDiagnosticWorker() {
+  if (!mobileSwipeDiagnosticsEnabled) return;
+  const expectedShell = mobileStagingBuild?.getAttribute('data-staging-pwa-version') || null;
+  let workerShell = null;
+  let workerCache = null;
+  try {
+    const scopeUrl = new URL('./', window.location.href).href;
+    const registration = await navigator.serviceWorker?.getRegistration?.(scopeUrl);
+    const response = await inspectWorker(navigator.serviceWorker?.controller || registration?.active || null);
+    workerShell = response?.shellVersion || null;
+    workerCache = response?.cacheName || null;
+  } catch (_) {
+    // The local event trace remains usable when the worker is unavailable offline.
+  }
+  mobileSwipeDiagnostic('worker', {js_build: PWA_SHELL_VERSION, expected_shell: expectedShell, worker_shell: workerShell, worker_cache: workerCache});
+}
 
 function mobileFontSizeValue(value) {
   return typeof value === 'string' && MOBILE_FONT_SIZES.has(value) ? value : MOBILE_FONT_SIZE_DEFAULT;
@@ -853,7 +935,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-014beeb';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-9b6f798';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1059,6 +1141,7 @@ function beginMobileTabSwipe(gesture, targetTab) {
   restoreMobileSwipePaneViewport(sourcePane, sourceTab, sourceState);
   restoreMobileSwipePaneViewport(targetPane, targetTab, targetState, {alignCard: true});
   gesture.tabSwipe = {overlay, sourcePane, targetPane, sourceTab, targetTab, sourceState, targetState, width, targetStart};
+  mobileSwipeDiagnostic('tab-overlay', {target: 'tab:' + targetTab, gesture: mobileSwipeDiagnosticGesture(gesture)});
 }
 
 function updateMobileTabSwipe(gesture) {
@@ -1073,6 +1156,7 @@ function updateMobileTabSwipe(gesture) {
 function settleMobileTabSwipe(gesture, commit) {
   const swipe = gesture?.tabSwipe;
   if (!swipe) return false;
+  mobileSwipeDiagnostic('tab-settle', {commit: Boolean(commit), target: 'tab:' + swipe.targetTab, gesture: mobileSwipeDiagnosticGesture(gesture)});
   mobileTabSwipeSettling = true;
   const sourceEnd = commit ? -swipe.targetStart : 0;
   const targetEnd = commit ? 0 : swipe.targetStart;
@@ -1148,6 +1232,7 @@ function beginMobileItineraryDaySwipe(gesture, target) {
   gesture.daySwipe = {
     overlay, sourcePane, targetPane, sourceTab, sourceState, target, targetBoundary, height, targetStart,
   };
+  mobileSwipeDiagnostic('day-overlay', {target: mobileSwipeDiagnosticTarget(target), gesture: mobileSwipeDiagnosticGesture(gesture)});
 }
 
 function updateMobileItineraryDayPaneSwipe(gesture) {
@@ -1162,6 +1247,7 @@ function updateMobileItineraryDayPaneSwipe(gesture) {
 function settleMobileItineraryDaySwipe(gesture, commit) {
   const swipe = gesture?.daySwipe;
   if (!swipe) return false;
+  mobileSwipeDiagnostic('day-settle', {commit: Boolean(commit), target: mobileSwipeDiagnosticTarget(swipe.target), gesture: mobileSwipeDiagnosticGesture(gesture)});
   mobileTabSwipeSettling = true;
   const sourceEnd = commit ? -swipe.targetStart : 0;
   const targetEnd = commit ? 0 : swipe.targetStart;
@@ -1221,10 +1307,14 @@ function updateMobileItineraryDaySwipe(pointerId, clientX, clientY) {
     if (!gesture.atBottom && deltaY < 0 && edge.atBottom) {
       gesture.atBottom = true;
       gesture.edgeStartY = clientY;
+      const {top, clientHeight, scrollHeight, maxTop} = mobileItineraryScrollState();
+      mobileSwipeDiagnostic('edge-bottom', {gesture: mobileSwipeDiagnosticGesture(gesture), scroll: {top, client_height: clientHeight, scroll_height: scrollHeight, max_top: maxTop}});
     }
     if (!gesture.atTop && deltaY > 0 && edge.atTop) {
       gesture.atTop = true;
       gesture.edgeStartY = clientY;
+      const {top, clientHeight, scrollHeight, maxTop} = mobileItineraryScrollState();
+      mobileSwipeDiagnostic('edge-top', {gesture: mobileSwipeDiagnosticGesture(gesture), scroll: {top, client_height: clientHeight, scroll_height: scrollHeight, max_top: maxTop}});
     }
   }
   return gesture;
@@ -1251,6 +1341,9 @@ function finishMobileItineraryDaySwipe(pointerId, clientX, clientY, cancelled = 
   const gesture = updateMobileItineraryDaySwipe(pointerId, clientX, clientY);
   if (!gesture) return false;
   const target = cancelled ? null : mobileItineraryDaySwipeTarget(gesture);
+  mobileSwipeDiagnostic(cancelled ? 'finish-cancelled' : 'finish', {
+    target: mobileSwipeDiagnosticTarget(target), gesture: mobileSwipeDiagnosticGesture(gesture),
+  });
   mobileItineraryDaySwipe = null;
   if (gesture.tabSwipe) return settleMobileTabSwipe(gesture, !cancelled && target?.kind === 'tab'
     && target.tab === gesture.tabSwipe.targetTab);
@@ -1280,21 +1373,33 @@ function touchForMobileItineraryDaySwipe(touches, pointerId) {
 }
 
 function startMobileItineraryTouchSwipe(event) {
-  if (event.touches?.length !== 1 || !event.changedTouches?.length) return;
+  if (event.touches?.length !== 1 || !event.changedTouches?.length) {
+    mobileSwipeDiagnostic('touchstart-ignored', {...mobileSwipeDiagnosticTouchEvent(event), touch_count: event.touches?.length || 0});
+    return;
+  }
   const touch = event.changedTouches[0];
-  startMobileItineraryDaySwipe('touch:' + touch.identifier, touch.clientX, touch.clientY);
+  const accepted = startMobileItineraryDaySwipe('touch:' + touch.identifier, touch.clientX, touch.clientY);
+  mobileSwipeDiagnostic('touchstart', {
+    accepted, ...mobileSwipeDiagnosticTouchEvent(event), x: Math.round(touch.clientX), y: Math.round(touch.clientY),
+    gesture: mobileSwipeDiagnosticGesture(mobileItineraryDaySwipe),
+    trip_content: mobileSwipeDiagnosticBox(mobileTripContent), itinerary: mobileSwipeDiagnosticBox(mobileItinerary),
+  });
 }
 
 function moveMobileItineraryTouchSwipe(event) {
   const gesture = mobileItineraryDaySwipe;
   if (!gesture?.pointerId?.startsWith('touch:')) return;
   const touch = touchForMobileItineraryDaySwipe(event.changedTouches, gesture.pointerId);
-  if (!touch) return;
+  if (!touch) {
+    mobileSwipeDiagnostic('touchmove-ignored', {reason: 'tracked-touch-missing', ...mobileSwipeDiagnosticTouchEvent(event)});
+    return;
+  }
   const updated = updateMobileItineraryDaySwipe(gesture.pointerId, touch.clientX, touch.clientY);
   if (updated?.direction === 'horizontal') {
     const target = mobileItineraryDaySwipeTarget(updated);
     if (updated.mode === 'memo-detail') {
       if (target) event.preventDefault();
+      mobileSwipeDiagnostic('touchmove', {...mobileSwipeDiagnosticTouchEvent(event), candidate: mobileSwipeDiagnosticTarget(target), prevented: Boolean(target), gesture: mobileSwipeDiagnosticGesture(updated)});
       return;
     }
     const previewTab = mobileAdjacentHorizontalTab(mobileActiveTab,
@@ -1304,6 +1409,7 @@ function moveMobileItineraryTouchSwipe(event) {
       updateMobileTabSwipe(updated);
     }
     event.preventDefault();
+    mobileSwipeDiagnostic('touchmove', {...mobileSwipeDiagnosticTouchEvent(event), candidate: previewTab ? 'tab:' + previewTab : 'none', prevented: true, gesture: mobileSwipeDiagnosticGesture(updated)});
     return;
   }
   const candidate = mobileItineraryDaySwipeCandidate(updated);
@@ -1311,15 +1417,22 @@ function moveMobileItineraryTouchSwipe(event) {
     beginMobileItineraryDaySwipe(updated, candidate);
     updateMobileItineraryDayPaneSwipe(updated);
     event.preventDefault();
+    mobileSwipeDiagnostic('touchmove', {...mobileSwipeDiagnosticTouchEvent(event), candidate: mobileSwipeDiagnosticTarget(candidate), prevented: true, gesture: mobileSwipeDiagnosticGesture(updated)});
     return;
   }
-  if (mobileItineraryDaySwipeTarget(updated)) event.preventDefault();
+  const target = mobileItineraryDaySwipeTarget(updated);
+  if (target) event.preventDefault();
+  mobileSwipeDiagnostic('touchmove', {...mobileSwipeDiagnosticTouchEvent(event), candidate: mobileSwipeDiagnosticTarget(candidate), commit_target: mobileSwipeDiagnosticTarget(target), prevented: Boolean(target), gesture: mobileSwipeDiagnosticGesture(updated)});
 }
 
 function finishMobileItineraryTouchSwipe(event, cancelled = false) {
   const gesture = mobileItineraryDaySwipe;
-  if (!gesture?.pointerId?.startsWith('touch:')) return;
+  if (!gesture?.pointerId?.startsWith('touch:')) {
+    mobileSwipeDiagnostic(cancelled ? 'touchcancel-ignored' : 'touchend-ignored', mobileSwipeDiagnosticTouchEvent(event));
+    return;
+  }
   const touch = touchForMobileItineraryDaySwipe(event.changedTouches, gesture.pointerId);
+  mobileSwipeDiagnostic(cancelled ? 'touchcancel' : 'touchend', {...mobileSwipeDiagnosticTouchEvent(event), touch_found: Boolean(touch), gesture: mobileSwipeDiagnosticGesture(gesture)});
   finishMobileItineraryDaySwipe(gesture.pointerId, touch?.clientX ?? gesture.currentX,
     touch?.clientY ?? gesture.currentY, cancelled);
 }
@@ -2398,7 +2511,7 @@ async function updateMobileStagingBuildVersion() {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v111）' : 'あり（v111確認不可）';
+    ? 'あり（v112）' : 'あり（v112確認不可）';
 }
 
 async function showPwaDiagnostics() {
@@ -2472,7 +2585,20 @@ if (mobilePreview.enabled) {
   savedTripQrScannerClose.addEventListener('click', closeSavedTripReceiveScanner);
   pwaDiagnosticsShow.addEventListener('click', () => { void showPwaDiagnostics(); });
   void updateMobileStagingBuildVersion();
-  void registerMobileServiceWorker();
+  if (mobileSwipeDiagnosticsEnabled) {
+    document.body?.append?.(mobileSwipeDiagnostics);
+    mobileSwipeDiagnostics.hidden = false;
+    mobileSwipeDiagnostic('ready', {
+      js_build: PWA_SHELL_VERSION,
+      expected_shell: mobileStagingBuild?.getAttribute('data-staging-pwa-version') || null,
+      trip_content: mobileSwipeDiagnosticBox(mobileTripContent),
+      itinerary: mobileSwipeDiagnosticBox(mobileItinerary),
+    });
+  }
+  const mobileServiceWorkerRegistration = registerMobileServiceWorker();
+  if (mobileSwipeDiagnosticsEnabled) {
+    void mobileServiceWorkerRegistration.finally(() => { void updateMobileSwipeDiagnosticWorker(); });
+  }
 }
 
 window.addEventListener('pagehide', () => { stopMobileQrScanner(); clearMobileShareDialog(); });
