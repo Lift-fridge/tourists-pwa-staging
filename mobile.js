@@ -41,25 +41,25 @@ const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-res
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 const mobileStagingBuild = document.getElementById('mobile-staging-build');
 
-const PWA_SHELL_VERSION = 'staging-215af91';
+const PWA_SHELL_VERSION = 'staging-014beeb';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-215af91',
-  './mobile.js?pwa=staging-215af91',
-  './mobile.css?pwa=staging-215af91',
-  './mobile-snapshot-store.js?pwa=staging-215af91',
-  './mobile-share-request-ticket-store.js?pwa=staging-215af91',
-  './mobile-share-qr-code.js?pwa=staging-215af91',
-  './mobile-incoming-snapshot.js?pwa=staging-215af91',
-  './tourists-public-config.js?pwa=staging-215af91',
-  './assets/jsqr-1.4.0.js?pwa=staging-215af91',
-  './manifest.webmanifest?pwa=staging-215af91',
-  './assets/icon-192.png?pwa=staging-215af91',
-  './assets/icon-512.png?pwa=staging-215af91',
-  './assets/icon-maskable-512.png?pwa=staging-215af91',
-  './assets/mobile-cover.png?pwa=staging-215af91',
-  './assets/mobile-clover.svg?pwa=staging-215af91',
+  './index.html?pwa=staging-014beeb',
+  './mobile.js?pwa=staging-014beeb',
+  './mobile.css?pwa=staging-014beeb',
+  './mobile-snapshot-store.js?pwa=staging-014beeb',
+  './mobile-share-request-ticket-store.js?pwa=staging-014beeb',
+  './mobile-share-qr-code.js?pwa=staging-014beeb',
+  './mobile-incoming-snapshot.js?pwa=staging-014beeb',
+  './tourists-public-config.js?pwa=staging-014beeb',
+  './assets/jsqr-1.4.0.js?pwa=staging-014beeb',
+  './manifest.webmanifest?pwa=staging-014beeb',
+  './assets/icon-192.png?pwa=staging-014beeb',
+  './assets/icon-512.png?pwa=staging-014beeb',
+  './assets/icon-maskable-512.png?pwa=staging-014beeb',
+  './assets/mobile-cover.png?pwa=staging-014beeb',
+  './assets/mobile-clover.svg?pwa=staging-014beeb',
 ];
 
 let selectedMobileDayKey = null;
@@ -853,7 +853,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-215af91';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-014beeb';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -1414,10 +1414,12 @@ function moveMobileTabByWheel(direction) {
 }
 
 function installMobileItineraryDaySwipe() {
-  mobileItinerary.addEventListener('touchstart', startMobileItineraryTouchSwipe, {passive: true});
-  mobileItinerary.addEventListener('touchmove', moveMobileItineraryTouchSwipe, {passive: false});
-  mobileItinerary.addEventListener('touchend', finishMobileItineraryTouchSwipe, {passive: true});
-  mobileItinerary.addEventListener('touchcancel', (event) => finishMobileItineraryTouchSwipe(event, true), {passive: true});
+  // mobileItinerary itself can be shorter than the viewport on an empty or final day.
+  // Its always-viewport-sized parent keeps the same gesture contract over the exposed surface.
+  mobileTripContent.addEventListener('touchstart', startMobileItineraryTouchSwipe, {passive: true});
+  mobileTripContent.addEventListener('touchmove', moveMobileItineraryTouchSwipe, {passive: false});
+  mobileTripContent.addEventListener('touchend', finishMobileItineraryTouchSwipe, {passive: true});
+  mobileTripContent.addEventListener('touchcancel', (event) => finishMobileItineraryTouchSwipe(event, true), {passive: true});
 }
 
 function moveMobilePreviewByWheel(event) {
@@ -2396,7 +2398,7 @@ async function updateMobileStagingBuildVersion() {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v110）' : 'あり（v110確認不可）';
+    ? 'あり（v111）' : 'あり（v111確認不可）';
 }
 
 async function showPwaDiagnostics() {
