@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-4c0beee') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-d3c8946') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -188,6 +188,11 @@ body.mobile-itinerary-active .mobile-itinerary:not([aria-label="旅行メモ"]) 
 .mobile-itinerary-day { scroll-margin-top: 88px; padding: 18px 0 10px; }
 .mobile-itinerary-day > h2 { margin: 0; color: var(--mobile-ink); font-family: var(--mobile-font-serif); font-size: var(--mobile-font-heading); font-weight: 500; line-height: 1.45; letter-spacing: .02em; }
 .mobile-memo-list, .mobile-memo-detail { padding: 18px 0 10px; }
+.mobile-itinerary[aria-label="旅行メモ"] .mobile-itinerary-days.mobile-memo-list-background {
+  background:
+    linear-gradient(rgba(246, 246, 244, .88), rgba(246, 246, 244, .88)),
+    url('./assets/mobile-memo-list-background.png?pwa=staging-d3c8946') center top / cover no-repeat;
+}
 .mobile-itinerary[aria-label="旅行メモ"] .mobile-memo-list { display: flex; flex: 1; flex-direction: column; }
 .mobile-memo-heading { margin: 0; color: var(--mobile-ink); font-family: var(--mobile-font-serif); font-size: var(--mobile-font-heading); font-weight: 500; line-height: 1.45; letter-spacing: .02em; }
 .mobile-memo-pages { margin: .8rem 0 0; padding: 0; list-style: none; }
