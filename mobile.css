@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-9b6f798') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-c2bb908') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -164,6 +164,8 @@ body.mobile-saved-trip-list-active .mobile-saved-trip-list.mobile-saved-trip-lis
   --mobile-font-saved-heading: 25px;
 }
 
+/* Empty and short days need a real hit-test surface through the current Safari viewport. */
+body.mobile-itinerary-active .mobile-itinerary:not([aria-label="旅行メモ"]) { min-height: 100vh; min-height: 100dvh; }
 .mobile-itinerary { margin: 0; padding: 0; border: 0; }
 .mobile-tab-swipe-overlay, .mobile-day-swipe-overlay { position: fixed; z-index: 4; inset: 0; overflow: hidden; pointer-events: none; background: var(--mobile-body); }
 .mobile-tab-swipe-pane, .mobile-day-swipe-pane { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; background: var(--mobile-body); will-change: transform; }
