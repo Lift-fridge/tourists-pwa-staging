@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-677f324') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-0391009') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -80,11 +80,6 @@ h1 { margin: .35rem 0 0; color: var(--mobile-ink); font-size: clamp(24px, 7vw, 3
 .mobile-saved-trip-share-button { display: flex; min-height: 36px; align-items: center; border: 0; padding: 0 .35rem; color: var(--mobile-muted); background: transparent; font: inherit; font-size: var(--mobile-font-prose); line-height: 1.35; }
 .mobile-saved-trip-share-button:hover { color: var(--mobile-ink); }
 .mobile-saved-trip-share-button:focus-visible, .mobile-saved-trip-share-close:focus-visible, #mobile-saved-trip-share-send:focus-visible, #mobile-saved-trip-share-verify-button:focus-visible { outline: 3px solid #9ba99b; outline-offset: 2px; }
-.mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'title'; padding: 0; }
-.mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-item { display: grid; min-width: 0; min-height: 40px; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: .35rem; padding: .9rem 0; }
-.mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-item:focus-visible { outline-offset: -3px; }
-.mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-title { display: block; min-width: 0; max-height: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-separator, .mobile-saved-trip-list[data-mobile-preview="true"] .mobile-saved-trip-list-date { color: var(--mobile-muted); font-size: var(--mobile-font-prose); white-space: nowrap; }
 .mobile-saved-trip-share { position: fixed; z-index: 6; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(42, 41, 37, .28); }
 .mobile-saved-trip-share[hidden] { display: none; }
 .mobile-saved-trip-share-content { width: min(100%, 28rem); max-height: 90svh; overflow-y: auto; padding: 20px; background: var(--mobile-body); }
