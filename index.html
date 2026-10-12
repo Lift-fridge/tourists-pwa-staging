@@ -7,18 +7,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="TOURISTS STAGING">
-  <link rel="manifest" href="./manifest.webmanifest?pwa=staging-74c50a5">
-  <link rel="icon" href="./assets/icon-192.png?pwa=staging-74c50a5" type="image/png">
-  <link rel="apple-touch-icon" href="./assets/icon-192.png?pwa=staging-74c50a5">
+  <link rel="manifest" href="./manifest.webmanifest?pwa=staging-34f69f7">
+  <link rel="icon" href="./assets/icon-192.png?pwa=staging-34f69f7" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png?pwa=staging-34f69f7">
   <title>TOURISTS STAGING</title>
-  <link rel="stylesheet" href="./mobile.css?pwa=staging-74c50a5">
-  <script src="./mobile-snapshot-store.js?pwa=staging-74c50a5" defer></script>
-  <script src="./mobile-share-request-ticket-store.js?pwa=staging-74c50a5" defer></script>
-  <script src="./mobile-share-qr-code.js?pwa=staging-74c50a5" defer></script>
-  <script src="./mobile-incoming-snapshot.js?pwa=staging-74c50a5" defer></script>
-  <script src="./assets/jsqr-1.4.0.js?pwa=staging-74c50a5" defer></script>
-  <script src="./tourists-public-config.js?pwa=staging-74c50a5" defer></script>
-  <script src="./mobile.js?pwa=staging-74c50a5" defer></script>
+  <link rel="stylesheet" href="./mobile.css?pwa=staging-34f69f7">
+  <script src="./mobile-snapshot-store.js?pwa=staging-34f69f7" defer></script>
+  <script src="./mobile-share-request-ticket-store.js?pwa=staging-34f69f7" defer></script>
+  <script src="./mobile-share-qr-code.js?pwa=staging-34f69f7" defer></script>
+  <script src="./mobile-incoming-snapshot.js?pwa=staging-34f69f7" defer></script>
+  <script src="./assets/jsqr-1.4.0.js?pwa=staging-34f69f7" defer></script>
+  <script src="./tourists-public-config.js?pwa=staging-34f69f7" defer></script>
+  <script src="./mobile-dock-v11.js?pwa=staging-34f69f7" defer></script>
+  <script src="./mobile.js?pwa=staging-34f69f7" defer></script>
 </head>
 <body>
   <main class="mobile-home-card">
@@ -30,8 +31,16 @@
         <p id="mobile-cover-dates" class="mobile-cover-dates"></p>
         <p id="mobile-cover-saved-at" class="mobile-cover-saved-at" hidden></p>
       </div>
+      <nav id="mobile-cover-dock" class="mobile-cover-dock" aria-label="旅行のアプリ・書類"></nav>
+      <div id="mobile-dock-dialog" class="mobile-dock-dialog" hidden>
+        <section class="mobile-dock-panel" role="dialog" aria-modal="true" aria-labelledby="mobile-dock-dialog-title">
+          <h2 id="mobile-dock-dialog-title"></h2>
+          <div id="mobile-dock-dialog-content"></div>
+          <button type="button" id="mobile-dock-dialog-close" class="mobile-dock-close">閉じる</button>
+        </section>
+      </div>
       <div class="mobile-cover-footer" aria-hidden="true">
-        <img class="mobile-cover-ornament" src="./assets/mobile-clover.svg?pwa=staging-74c50a5" alt="">
+        <img class="mobile-cover-ornament" src="./assets/mobile-clover.svg?pwa=staging-34f69f7" alt="">
         <p class="mobile-cover-swipe"><span>↑</span> 上へスワイプして旅をはじめる</p>
       </div>
     </section>
@@ -95,7 +104,7 @@
           <button type="button" id="mobile-saved-trip-share-close" class="mobile-saved-trip-share-close">閉じる</button>
         </div>
       </section>
-      <p id="mobile-staging-build" class="mobile-staging-build" data-staging-build-id="74c50a5" data-staging-pwa-version="v117" aria-label="STAGING build ID">STAGING · 74c50a5 · PWA --</p>
+      <p id="mobile-staging-build" class="mobile-staging-build" data-staging-build-id="34f69f7" data-staging-pwa-version="v118" aria-label="STAGING build ID">STAGING · 34f69f7 · PWA --</p>
     </section>
     <section id="mobile-pwa-diagnostics" class="mobile-pwa-diagnostics" aria-labelledby="mobile-pwa-diagnostics-heading" hidden>
       <button type="button" id="mobile-pwa-diagnostics-show">PWA診断を表示</button>

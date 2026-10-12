@@ -2,13 +2,14 @@
 
 // GitHub Pagesのproject siteでも、Workerの登録scopeを基準にshellを解決する。
 const CACHE_PREFIX = 'travel-shiori-staging-shell-';
-const SHELL_VERSION = 'staging-74c50a5';
-const PWA_SHELL_VERSION = 'v117';
+const SHELL_VERSION = 'staging-34f69f7';
+const PWA_SHELL_VERSION = 'v118';
 const CACHE_NAME = CACHE_PREFIX + SHELL_VERSION;
 const SCOPE_URL = new URL(self.registration.scope);
 const SHELL_PATHS = [
   'index.html',
   'mobile.js',
+  'mobile-dock-v11.js',
   'mobile.css',
   'mobile-snapshot-store.js',
   'mobile-share-request-ticket-store.js',
@@ -80,9 +81,6 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
-
-  // Isolated V1.1 Dock tests must bypass the STAGING app-shell navigation fallback.
-  if (url.pathname.startsWith(SCOPE_URL.pathname + 'dock-phase1/')) return;
 
   // iOSのホーム画面起動では、manifestのstart_urlではなく追加時のURLで
   // navigationが始まる場合がある。常にこのscopeのキャッシュ済みshellを返す。

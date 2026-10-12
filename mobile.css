@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-74c50a5') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-34f69f7') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -191,7 +191,7 @@ body.mobile-itinerary-active .mobile-itinerary:not([aria-label="旅行メモ"]) 
 .mobile-itinerary[aria-label="旅行メモ"] .mobile-itinerary-days.mobile-memo-list-background {
   background:
     linear-gradient(rgba(246, 246, 244, .88), rgba(246, 246, 244, .88)),
-    url('./assets/mobile-memo-list-background.png?pwa=staging-74c50a5') center top / cover no-repeat;
+    url('./assets/mobile-memo-list-background.png?pwa=staging-34f69f7') center top / cover no-repeat;
 }
 .mobile-itinerary[aria-label="旅行メモ"] .mobile-memo-list { display: flex; flex: 1; flex-direction: column; }
 .mobile-memo-heading { margin: 0; color: var(--mobile-ink); font-family: var(--mobile-font-serif); font-size: var(--mobile-font-heading); font-weight: 500; line-height: 1.45; letter-spacing: .02em; }
@@ -262,5 +262,26 @@ body.mobile-itinerary-active .mobile-itinerary:not([aria-label="旅行メモ"]) 
 .mobile-pwa-diagnostics { margin-top: 1rem; }
 .mobile-pwa-diagnostics > button { width: 100%; }
 #mobile-pwa-diagnostics-result { margin: .65rem 0 0; padding: .75rem; overflow-wrap: anywhere; white-space: pre-wrap; border-radius: 0; background: var(--mobile-paper-deep); color: var(--mobile-ink); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+
+/* V1.1 Dock: separate per-device launcher on the cover only. */
+.mobile-cover-content { position:absolute; top:36%; left:24px; right:24px; transform:translateY(-50%); padding:0; }
+.mobile-cover-dock { position:absolute; top:66.666%; left:16px; right:16px; display:flex; gap:4px; align-items:start; transform:translateY(-50%); overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; padding:6px 0 12px; -webkit-overflow-scrolling:touch; z-index:2; }
+.mobile-cover-dock:not(.mobile-dock-scroll) { justify-content:center; }
+.mobile-dock-item { width:calc((100% - 12px)/4); flex:0 0 calc((100% - 12px)/4); border:0; background:transparent; padding:0; display:grid; justify-items:center; gap:6px; color:var(--mobile-ink); scroll-snap-align:start; font-family:var(--mobile-font-sans); min-width:0; }
+.mobile-dock-icon { width:min(68px, calc(100% - 4px)); aspect-ratio:1; border-radius:19px; object-fit:cover; }
+.mobile-dock-icon-fallback { border:1px solid var(--mobile-rule); background:rgba(255,255,255,.6); display:grid; place-items:center; font-size:28px; color:var(--mobile-green); }
+.mobile-dock-label { display:block; width:100%; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.mobile-dock-dialog[hidden] { display:none !important; }
+.mobile-dock-dialog { position:fixed; z-index:20; inset:0; display:flex; align-items:end; background:rgba(0,0,0,.38); }
+.mobile-dock-panel { width:100%; max-height:85svh; overflow-y:auto; padding:20px 20px 32px; border-radius:20px 20px 0 0; background:var(--mobile-paper); -webkit-user-select:text; user-select:text; }
+.mobile-dock-panel h2 { font:500 21px/1.5 var(--mobile-font-serif); margin:0 0 16px; }
+.mobile-dock-panel label { display:block; font-size:13px; margin:12px 0; }
+.mobile-dock-input { display:block; width:100%; border:1px solid var(--mobile-rule); border-radius:8px; padding:12px; font-size:16px; background:white; margin-top:6px; }
+.mobile-dock-actions { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+.mobile-dock-actions button, .mobile-dock-close { flex:1; min-width:0; border:1px solid var(--mobile-rule); border-radius:9px; background:white; padding:12px 9px; color:var(--mobile-ink); font-size:14px; }
+.mobile-dock-actions button.mobile-dock-primary { background:var(--mobile-green); color:white; }
+.mobile-dock-close { width:100%; background:transparent; margin-top:8px; }
+.mobile-dock-message { font-size:12px; color:var(--mobile-muted); }
 
 .mobile-staging-build { margin: 1rem 0 0; color: #745421; font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .03em; text-align: right; }
