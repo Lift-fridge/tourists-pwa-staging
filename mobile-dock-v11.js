@@ -113,7 +113,12 @@
     const file=element('input','mobile-dock-input');file.type='file';file.accept='image/*';label.append(file);content.append(label);
     const error=message('画像はこのiPhone内だけに保存されます。');
     actions(button('保存',async()=>{
-      const n=name.value.trim(),s=shortcut.value.trim(),blob=file.files?.[0]||existing?.blob;
+      const n=name.value.trim(),s=shortcut.value.trim();
+      const selectedFile=file.files?.[0] || null;
+      // Safari may invalidate File-backed artwork when a record is rewritten.
+      // Persist plain Blob bytes and retain the existing image if unchanged.
+      const source=selectedFile || existing?.blob;
+      const blob=source instanceof Blob ? source.slice(0,source.size,source.type) : null;
       if(!n||!s||!blob||!blob.type.startsWith('image/')||blob.size>limit){error.textContent='名前・ショートカット名・4MB以下の画像を指定してください。';return}
       const id=existing?.id||('app-'+Date.now()+'-'+Math.random().toString(36).slice(2));
       try {
