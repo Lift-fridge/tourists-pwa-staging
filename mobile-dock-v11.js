@@ -77,6 +77,7 @@
       const name = entry.type === 'folder' ? '書類' : app.name;
       const b = element('button', 'mobile-dock-item'); b.type='button';b.title=name; b.setAttribute('aria-label', name+'を開く');
       if (app?.blob) { const img = element('img', 'mobile-dock-icon');img.src=imageUrl(app.blob);img.alt='';b.append(img); }
+      else if (entry.type === 'folder') { const img = element('img', 'mobile-dock-icon'); img.src = './assets/dock-folder.svg?pwa=v120'; img.alt = ''; b.append(img); }
       else b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
       b.append(element('span', 'mobile-dock-label', name));
       b.addEventListener('click', () => launch(entry.type === 'folder' ? entry : {...entry,shortcut:app.shortcut}));
@@ -114,7 +115,16 @@
       const n=name.value.trim(),s=shortcut.value.trim(),blob=file.files?.[0]||existing?.blob;
       if(!n||!s||!blob||!blob.type.startsWith('image/')||blob.size>limit){error.textContent='名前・ショートカット名・4MB以下の画像を指定してください。';return}
       const id=existing?.id||('app-'+Date.now()+'-'+Math.random().toString(36).slice(2));
-      try{await put('apps',{id,name:n,shortcut:s,blob});await refresh();if(!existing)await saveTrip([...tripEntries,{type:'app',appId:id}]);hideDialog();}
+      try {
+        await put('apps',{id,name:n,shortcut:s,blob});
+        if (!existing && tripKey) {
+          const record = await get('trips',tripKey);
+          const entries = record?.entries || [];
+          if (!entries.some(e => e.type === 'app' && e.appId === id)) await put('trips',{id:tripKey,entries:[...entries,{type:'app',appId:id}]});
+        }
+        await refresh();
+        hideDialog();
+      }
       catch(_){error.textContent='保存できませんでした。端末の空き容量を確認してください。'}
     },'mobile-dock-primary'));
   }
