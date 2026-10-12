@@ -77,7 +77,8 @@
       const name = entry.type === 'folder' ? '書類' : app.name;
       const b = element('button', 'mobile-dock-item'); b.type='button';b.title=name; b.setAttribute('aria-label', name+'を開く');
       if (app?.blob) { const img = element('img', 'mobile-dock-icon');img.src=imageUrl(app.blob);img.alt='';b.append(img); }
-      else if (entry.type === 'folder') { const img = element('img', 'mobile-dock-icon'); img.src = './assets/dock-folder.svg?pwa=v120'; img.alt = ''; b.append(img); }
+      else if (entry.type === 'folder' && entry.iconBlob) { const img = element('img', 'mobile-dock-icon'); img.src = imageUrl(entry.iconBlob); img.alt = ''; b.append(img); }
+      else if (entry.type === 'folder') b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
       else b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
       b.append(element('span', 'mobile-dock-label', name));
       b.addEventListener('click', () => launch(entry.type === 'folder' ? entry : {...entry,shortcut:app.shortcut}));
@@ -132,11 +133,15 @@
     const old=tripEntries.find(e=>e.type==='folder');
     showDialog(old?'書類フォルダを変更':'書類フォルダを追加');
     const name=field('iCloud Drive直下のフォルダ名','旅行書類',old?.folder||'');
-    const error=message('フォルダへの入口だけを登録します。');
+    const iconLabel = element('label', '', '書類アイコン画像（任意）');
+    const iconFile = element('input', 'mobile-dock-input'); iconFile.type = 'file'; iconFile.accept = 'image/*'; iconLabel.append(iconFile); content.append(iconLabel);
+    const error=message('画像はこのiPhoneにだけ保存されます。未選択なら標準アイコンを使用します。');
     actions(button('保存',async()=>{
       const folder=name.value.trim();
       if(!folder||folder==='.'||folder==='..'||folder.includes('/')||folder.includes('\\')){error.textContent='有効なフォルダ名を入力してください。';return}
-      try{await saveTrip([{type:'folder',folder},...tripEntries.filter(e=>e.type!=='folder')]);hideDialog()}catch(_){error.textContent='保存できませんでした。'}
+      const iconBlob = iconFile.files?.[0] || old?.iconBlob || null;
+      if(iconBlob && (!iconBlob.type.startsWith('image/') || iconBlob.size > limit)){error.textContent='4MB以下の画像を選んでください。';return}
+      try{await saveTrip([{type:'folder',folder,...(iconBlob ? {iconBlob} : {})},...tripEntries.filter(e=>e.type!=='folder')]);hideDialog()}catch(_){error.textContent='保存できませんでした。'}
     },'mobile-dock-primary'));
   }
   function edit(entry) {
