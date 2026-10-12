@@ -8,36 +8,49 @@
 <h1>V1.1｜App Store アイコン検証</h1>
 <p class="note">STAGING専用の独立テスト。Appleの公開検索APIを呼び出してアプリ候補と画像を表示します。Dockへの登録・旅行データの変更・画像保存はしません。</p>
 <div class="panel"><label for="query">アプリ名</label><input id="query" value="ANA" maxlength="80" autocomplete="off"><button id="search" type="button">App Storeを検索</button><p class="note">地域：日本のApp Store。検索語は検索時にAppleへ送信されます。</p><div id="status" role="status" class="status">「検索」を押してください。</div></div>
-<div class="panel"><h2 style="font-size:16px">検索結果（候補をタップして比較）</h2><div class="results" id="results"></div></div>
-<div class="panel hide" id="selected"><h2 style="font-size:16px">選択したアプリ</h2><div id="selected-content"></div><p class="note">ホーム画面の実際のアイコンと一致するか確認してください。App Storeの画像は端末のテーマ設定やアプリ更新により違う可能性があります。</p></div>
+<div class="panel"><h2 style="font-size:16px">検索結果（候補をタップして比較）</h2><div class="results" id="results"></div><button id="more" type="button" class="hide">さらに5件を見る</button></div>
+<div class="panel hide" id="selected"><h2 style="font-size:16px">選択したアプリ</h2><div id="selected-content"></div><label for="shortcut-name">起動するショートカット名（操作確認用）</label><input id="shortcut-name" placeholder="例：Hilton" maxlength="80"><p class="note">ここでは入力内容を保存せず、アプリも起動しません。</p><p class="note">ホーム画面の実際のアイコンと一致するか確認してください。App Storeの画像は端末のテーマ設定やアプリ更新により違う可能性があります。</p></div>
 <div class="panel"><h2 style="font-size:16px">検証の注意点</h2><p class="note">AppleのiTunes Search APIで公開される画像URLを表示する技術検証です。Appleの利用条件ではAPI由来のアプリアイコンの利用目的等に制約があります。Dockの起動用画像としての採用は別途利用条件の確認が必要です。APIがブラウザから直接呼び出せない場合は、そのままエラーを表示します。</p></div>
 <script>
 'use strict';
-const query=document.getElementById('query'),status=document.getElementById('status'),results=document.getElementById('results'),selected=document.getElementById('selected');
-const btn=document.getElementById('search');
-async function run(){
- const term=query.value.trim();
- if(!term){status.textContent='アプリ名を入力してください。';return}
- btn.disabled=true;results.replaceChildren();selected.classList.add('hide');status.textContent='Appleの検索APIへ問い合わせ中…';
- try{
- const u=new URL('https://itunes.apple.com/search');
- u.searchParams.set('term',term);u.searchParams.set('entity','software');u.searchParams.set('country','jp');u.searchParams.set('limit','12');
- const res=await fetch(u.toString(),{mode:'cors'});
- if(!res.ok)throw Error('HTTP '+res.status);
- const payload=await res.json();
- if(!Array.isArray(payload.results))throw Error('応答形式が想定と違います');
- const apps=payload.results.filter(x=>x.kind==='software' && typeof x.trackName==='string' && /^https:\/\//.test(x.artworkUrl100||''));
- status.textContent='候補 '+apps.length+'件。正式なアプリを選んでアイコンを比較してください。';
- for(const app of apps){
- const b=document.createElement('button');b.className='result';b.type='button';
+const query=document.getElementById('query'),status=document.getElementById('status'),results=document.getElementById('results'),selected=document.getElementById('selected'),more=document.getElementById('more'),search=document.getElementById('search');
+let found=[],shown=0;
+function renderCandidate(app){
+ const button=document.createElement('button');button.type='button';button.className='result';
  const img=document.createElement('img');img.src=app.artworkUrl100;img.alt='';img.referrerPolicy='no-referrer';
- const span=document.createElement('span'),strong=document.createElement('strong'),small=document.createElement('small');
- strong.textContent=app.trackName;small.textContent=app.artistName||'開発元不明';span.append(strong,small);b.append(img,span);
- b.addEventListener('click',()=>{for(const node of results.children)node.classList.remove('picked');b.classList.add('picked');const container=document.getElementById('selected-content');container.replaceChildren();const image=document.createElement('img');image.src=app.artworkUrl100;image.alt=app.trackName+' のApp Store掲載アイコン';image.width=76;image.height=76;image.style.borderRadius='17px';const title=document.createElement('p');title.textContent=app.trackName+' / '+(app.artistName||'');container.append(image,title);selected.classList.remove('hide')});results.append(b)
- }
- }catch(e){status.textContent='検索に失敗しました。ブラウザの通信制限（CORS）や接続状況の可能性があります。\nエラー：'+String(e.message||e)}
- finally{btn.disabled=false}
+ const detail=document.createElement('span'),name=document.createElement('strong'),developer=document.createElement('small');
+ name.textContent=app.trackName;developer.textContent=app.artistName||'開発元不明';detail.append(name,developer);button.append(img,detail);
+ button.addEventListener('click',()=>{
+  for(const element of results.children)element.classList.remove('picked');
+  button.classList.add('picked');
+  const content=document.getElementById('selected-content');content.replaceChildren();
+  const icon=document.createElement('img');icon.src=app.artworkUrl100;icon.alt=app.trackName+'のApp Store掲載アイコン';icon.width=76;icon.height=76;icon.style.borderRadius='17px';
+  const label=document.createElement('p');label.textContent=app.trackName+' / '+(app.artistName||'');
+  content.append(icon,label);document.getElementById('shortcut-name').value='';selected.classList.remove('hide');
+  selected.scrollIntoView({behavior:'smooth',block:'start'});
+ });
+ results.append(button);
 }
-btn.addEventListener('click',run);query.addEventListener('keydown',e=>{if(e.key==='Enter')run()});
+function showMore(){
+ const next=found.slice(shown,shown+5);shown+=next.length;
+ for(const app of next)renderCandidate(app);
+ more.classList.toggle('hide',shown>=found.length);
+ more.textContent='さらに'+Math.min(5,found.length-shown)+'件を見る';
+}
+async function run(){
+ const term=query.value.trim();if(!term){status.textContent='アプリ名を入力してください。';return}
+ search.disabled=true;results.replaceChildren();selected.classList.add('hide');more.classList.add('hide');
+ status.textContent='Appleの検索APIへ問い合わせ中…';
+ try{
+  const url=new URL('https://itunes.apple.com/search');
+  url.searchParams.set('term',term);url.searchParams.set('entity','software');url.searchParams.set('country','jp');url.searchParams.set('limit','25');
+  const response=await fetch(url.toString(),{mode:'cors'});if(!response.ok)throw Error('HTTP '+response.status);
+  const data=await response.json();if(!Array.isArray(data.results))throw Error('応答形式が想定と違います');
+  found=data.results.filter(x=>x.kind==='software'&&typeof x.trackName==='string'&&String(x.artworkUrl100||'').startsWith('https://'));
+  shown=0;status.textContent='候補 '+found.length+'件。最初の5件を表示しています。';showMore();
+ }catch(error){status.textContent='検索に失敗しました：'+String(error.message||error)}
+ finally{search.disabled=false}
+}
+search.addEventListener('click',run);more.addEventListener('click',showMore);query.addEventListener('keydown',event=>{if(event.key==='Enter')run()});
 </script>
 </body></html>
