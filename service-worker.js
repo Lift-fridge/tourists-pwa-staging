@@ -2,7 +2,7 @@
 
 // GitHub Pagesのproject siteでも、Workerの登録scopeを基準にshellを解決する。
 const CACHE_PREFIX = 'travel-shiori-staging-shell-';
-const SHELL_VERSION = 'staging-afed079';
+const SHELL_VERSION = 'staging-e5e89ad';
 const PWA_SHELL_VERSION = 'v120';
 const CACHE_NAME = CACHE_PREFIX + SHELL_VERSION;
 const SCOPE_URL = new URL(self.registration.scope);
