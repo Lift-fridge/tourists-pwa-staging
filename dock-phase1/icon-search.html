@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dock アイコン検索検証｜V1.1 STAGING</title>
+<style>
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#f6f6f4;color:#2a2925;margin:0;padding:24px 18px 55px;max-width:560px;margin-inline:auto}h1{font-size:21px;font-weight:600}p{line-height:1.6;font-size:14px}.note{color:#6d665e;font-size:12px}.panel{background:#fff;border:1px solid #d6d6d1;border-radius:14px;padding:16px;margin:16px 0}label{display:block;font-size:13px;margin-bottom:6px}input{width:100%;font-size:17px;padding:13px;border:1px solid #aaa;border-radius:8px}button{padding:12px 16px;border-radius:9px;border:1px solid #728271;background:#f9fbf8;color:#2a2925;font-size:15px;margin-top:10px}.results{display:grid;gap:10px}.result{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:#fff;margin:0}.result img{height:58px;width:58px;object-fit:cover;border-radius:13px;flex-shrink:0}.result span{min-width:0;flex:1}.result strong,.result small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.result small{font-size:12px;color:#6d665e}.picked{border:2px solid #587d5a;background:#f4f7f3}.status{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.hide{display:none}
+</style></head>
+<body>
+<h1>V1.1｜App Store アイコン検証</h1>
+<p class="note">STAGING専用の独立テスト。Appleの公開検索APIを呼び出してアプリ候補と画像を表示します。Dockへの登録・旅行データの変更・画像保存はしません。</p>
+<div class="panel"><label for="query">アプリ名</label><input id="query" value="ANA" maxlength="80" autocomplete="off"><button id="search" type="button">App Storeを検索</button><p class="note">地域：日本のApp Store。検索語は検索時にAppleへ送信されます。</p><div id="status" role="status" class="status">「検索」を押してください。</div></div>
+<div class="panel"><h2 style="font-size:16px">検索結果（候補をタップして比較）</h2><div class="results" id="results"></div></div>
+<div class="panel hide" id="selected"><h2 style="font-size:16px">選択したアプリ</h2><div id="selected-content"></div><p class="note">ホーム画面の実際のアイコンと一致するか確認してください。App Storeの画像は端末のテーマ設定やアプリ更新により違う可能性があります。</p></div>
+<div class="panel"><h2 style="font-size:16px">検証の注意点</h2><p class="note">AppleのiTunes Search APIで公開される画像URLを表示する技術検証です。Appleの利用条件ではAPI由来のアプリアイコンの利用目的等に制約があります。Dockの起動用画像としての採用は別途利用条件の確認が必要です。APIがブラウザから直接呼び出せない場合は、そのままエラーを表示します。</p></div>
+<script>
+'use strict';
+const query=document.getElementById('query'),status=document.getElementById('status'),results=document.getElementById('results'),selected=document.getElementById('selected');
+const btn=document.getElementById('search');
+async function run(){
+ const term=query.value.trim();
+ if(!term){status.textContent='アプリ名を入力してください。';return}
+ btn.disabled=true;results.replaceChildren();selected.classList.add('hide');status.textContent='Appleの検索APIへ問い合わせ中…';
+ try{
+ const u=new URL('https://itunes.apple.com/search');
+ u.searchParams.set('term',term);u.searchParams.set('entity','software');u.searchParams.set('country','jp');u.searchParams.set('limit','12');
+ const res=await fetch(u.toString(),{mode:'cors'});
+ if(!res.ok)throw Error('HTTP '+res.status);
+ const payload=await res.json();
+ if(!Array.isArray(payload.results))throw Error('応答形式が想定と違います');
+ const apps=payload.results.filter(x=>x.kind==='software' && typeof x.trackName==='string' && /^https:\/\//.test(x.artworkUrl100||''));
+ status.textContent='候補 '+apps.length+'件。正式なアプリを選んでアイコンを比較してください。';
+ for(const app of apps){
+ const b=document.createElement('button');b.className='result';b.type='button';
+ const img=document.createElement('img');img.src=app.artworkUrl100;img.alt='';img.referrerPolicy='no-referrer';
+ const span=document.createElement('span'),strong=document.createElement('strong'),small=document.createElement('small');
+ strong.textContent=app.trackName;small.textContent=app.artistName||'開発元不明';span.append(strong,small);b.append(img,span);
+ b.addEventListener('click',()=>{for(const node of results.children)node.classList.remove('picked');b.classList.add('picked');const container=document.getElementById('selected-content');container.replaceChildren();const image=document.createElement('img');image.src=app.artworkUrl100;image.alt=app.trackName+' のApp Store掲載アイコン';image.width=76;image.height=76;image.style.borderRadius='17px';const title=document.createElement('p');title.textContent=app.trackName+' / '+(app.artistName||'');container.append(image,title);selected.classList.remove('hide')});results.append(b)
+ }
+ }catch(e){status.textContent='検索に失敗しました。ブラウザの通信制限（CORS）や接続状況の可能性があります。\nエラー：'+String(e.message||e)}
+ finally{btn.disabled=false}
+}
+btn.addEventListener('click',run);query.addEventListener('keydown',e=>{if(e.key==='Enter')run()});
+</script>
+</body></html>
