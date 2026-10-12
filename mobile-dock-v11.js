@@ -101,7 +101,7 @@
       message('登録済みから選ぶ');
       for(const app of library) actions(button(app.name, async()=>{await saveTrip([...tripEntries.filter(e=>e.appId!==app.id),{type:'app',appId:app.id}]);hideDialog();}));
     }
-    actions(button('新しいアプリを登録', newApp));
+    actions(button('新しいアプリを登録', () => newApp()));
   }
   function newApp(existing = null) {
     showDialog(existing ? 'アプリを編集' : 'アプリを登録');
