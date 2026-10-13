@@ -41,26 +41,26 @@ const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-res
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 const mobileStagingBuild = document.getElementById('mobile-staging-build');
 
-const PWA_SHELL_VERSION = 'staging-553341b';
+const PWA_SHELL_VERSION = 'staging-9994b7f';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-553341b',
-  './mobile.js?pwa=staging-553341b',
-  './mobile.css?pwa=staging-553341b',
-  './mobile-snapshot-store.js?pwa=staging-553341b',
-  './mobile-share-request-ticket-store.js?pwa=staging-553341b',
-  './mobile-share-qr-code.js?pwa=staging-553341b',
-  './mobile-incoming-snapshot.js?pwa=staging-553341b',
-  './tourists-public-config.js?pwa=staging-553341b',
-  './assets/jsqr-1.4.0.js?pwa=staging-553341b',
-  './manifest.webmanifest?pwa=staging-553341b',
-  './assets/icon-192.png?pwa=staging-553341b',
-  './assets/icon-512.png?pwa=staging-553341b',
-  './assets/icon-maskable-512.png?pwa=staging-553341b',
-  './assets/mobile-cover.png?pwa=staging-553341b',
-  './assets/mobile-memo-list-background.png?pwa=staging-553341b',
-  './assets/mobile-clover.svg?pwa=staging-553341b',
+  './index.html?pwa=staging-9994b7f',
+  './mobile.js?pwa=staging-9994b7f',
+  './mobile.css?pwa=staging-9994b7f',
+  './mobile-snapshot-store.js?pwa=staging-9994b7f',
+  './mobile-share-request-ticket-store.js?pwa=staging-9994b7f',
+  './mobile-share-qr-code.js?pwa=staging-9994b7f',
+  './mobile-incoming-snapshot.js?pwa=staging-9994b7f',
+  './tourists-public-config.js?pwa=staging-9994b7f',
+  './assets/jsqr-1.4.0.js?pwa=staging-9994b7f',
+  './manifest.webmanifest?pwa=staging-9994b7f',
+  './assets/icon-192.png?pwa=staging-9994b7f',
+  './assets/icon-512.png?pwa=staging-9994b7f',
+  './assets/icon-maskable-512.png?pwa=staging-9994b7f',
+  './assets/mobile-cover.png?pwa=staging-9994b7f',
+  './assets/mobile-memo-list-background.png?pwa=staging-9994b7f',
+  './assets/mobile-clover.svg?pwa=staging-9994b7f',
 ];
 
 let selectedMobileDayKey = null;
@@ -855,7 +855,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-553341b';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-9994b7f';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);
@@ -2401,7 +2401,7 @@ async function updateMobileStagingBuildVersion() {
 function diagnosticWorkerLabel(worker, response) {
   if (!worker) return 'なし';
   return response?.shellVersion === PWA_SHELL_VERSION && response?.cacheName === PWA_CACHE_NAME
-    ? 'あり（v129）' : 'あり（v129確認不可）';
+    ? 'あり（v130）' : 'あり（v130確認不可）';
 }
 
 async function showPwaDiagnostics() {
