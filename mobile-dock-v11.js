@@ -156,7 +156,7 @@
     if (library.length) {
       message('登録済みから選ぶ');
       for (const app of library) {
-        const add = button(app.name, async () => {
+        const add = button('', async () => {
           add.disabled = true;
           try {
             await saveTrip([...tripEntries.filter(e => e.appId !== app.id), {type:'app',appId:app.id}]);
@@ -166,7 +166,10 @@
             message('追加できませんでした。もう一度お試しください。');
           }
         });
-        const remove = button('🗑', () => confirmDeleteApp(app), 'mobile-dock-delete-app');
+        add.classList.add('mobile-dock-library-add');
+        add.append(element('span', 'mobile-dock-library-name', app.name), element('span', 'mobile-dock-library-plus', '＋'));
+        const remove = button('', () => confirmDeleteApp(app), 'mobile-dock-delete-app');
+        remove.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v7m4-7v7"/></svg>';
         remove.setAttribute('aria-label', app.name + 'を登録済みアプリから削除');
         actions(add, remove);
       }
