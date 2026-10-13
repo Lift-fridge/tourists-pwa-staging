@@ -69,7 +69,14 @@
     } catch (_) { if (current === generation) { mount.replaceChildren(button('＋ 追加', () => message('Dockの保存領域を開けません。'))); } }
   }
   function render() {
-    releaseUrls(); mount.replaceChildren();
+    // Keep old object URLs alive until Safari finishes decoding replacement images.
+    // Revoking them before the new images load can briefly show a broken-image icon.
+    const previousUrls = objectUrls;
+    objectUrls = [];
+    mount.replaceChildren();
+    if (previousUrls.length) window.setTimeout(() => {
+      for (const url of previousUrls) URL.revokeObjectURL(url);
+    }, 10000);
     if (!tripKey) return;
     for (const entry of tripEntries) {
       const app = entry.type === 'app' ? library.find(a => a.id === entry.appId) : null;
