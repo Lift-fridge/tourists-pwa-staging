@@ -11,11 +11,12 @@
   let dbPromise, tripKey = null, generation = 0, objectUrls = [], library = [], tripEntries = [];
   function openDb() {
     if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(dbName, 1);
+      const request = indexedDB.open(dbName, 2);
       request.onupgradeneeded = () => {
         const db = request.result;
-        db.createObjectStore('apps', {keyPath: 'id'});
-        db.createObjectStore('trips', {keyPath: 'id'});
+        if (!db.objectStoreNames.contains('apps')) db.createObjectStore('apps', {keyPath: 'id'});
+        if (!db.objectStoreNames.contains('trips')) db.createObjectStore('trips', {keyPath: 'id'});
+        if (!db.objectStoreNames.contains('app-metadata')) db.createObjectStore('app-metadata', {keyPath: 'id'});
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -63,9 +64,11 @@
   async function refresh() {
     const current = ++generation;
     try {
-      const [apps, record] = await Promise.all([all('apps'), tripKey ? get('trips', tripKey) : Promise.resolve(null)]);
+      const [apps, metadata, record] = await Promise.all([all('apps'), all('app-metadata'), tripKey ? get('trips', tripKey) : Promise.resolve(null)]);
       if (current !== generation) return;
-      library = apps; tripEntries = record?.entries || []; render();
+      const byId = new Map(metadata.map(item => [item.id, item]));
+      library = apps.map(app => ({...app, ...(byId.get(app.id) || {})}));
+      tripEntries = record?.entries || []; render();
     } catch (_) { if (current === generation) { mount.replaceChildren(button('＋ 追加', () => message('Dockの保存領域を開けません。'))); } }
   }
   function render() {
@@ -125,11 +128,17 @@
       // Safari may invalidate File-backed artwork when a record is rewritten.
       // Persist plain Blob bytes and retain the existing image if unchanged.
       const source=selectedFile || existing?.blob;
-      const blob=source instanceof Blob ? source.slice(0,source.size,source.type) : null;
+      const blob=source instanceof Blob ? source : null;
       if(!n||!s||!blob||!blob.type.startsWith('image/')||blob.size>limit){error.textContent='名前・ショートカット名・4MB以下の画像を指定してください。';return}
       const id=existing?.id||('app-'+Date.now()+'-'+Math.random().toString(36).slice(2));
       try {
-        await put('apps',{id,name:n,shortcut:s,blob});
+        if (existing && !selectedFile) {
+          // Metadata-only edit: do not rewrite the existing image Blob in IndexedDB.
+          await put('app-metadata',{id,name:n,shortcut:s});
+        } else {
+          await put('apps',{id,name:n,shortcut:s,blob});
+          if (existing) await put('app-metadata',{id,name:n,shortcut:s});
+        }
         if (!existing && tripKey) {
           const record = await get('trips',tripKey);
           const entries = record?.entries || [];
