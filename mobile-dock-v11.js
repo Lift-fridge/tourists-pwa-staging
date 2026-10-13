@@ -77,6 +77,13 @@
     // Each render creates fresh object URLs. Retain prior URLs for the lifetime
     // of the page: WebKit may decode previously displayed Blob URLs lazily.
     // They are all released on pagehide, not during an unrelated Dock edit.
+    // Reuse existing icon <img> nodes on membership changes. This avoids
+    // decoding the same iOS File/Blob again, which can fail in WebKit.
+    const previousIcons = new Map();
+    for (const item of mount.querySelectorAll('.mobile-dock-item[data-dock-key]')) {
+      const img = item.querySelector('img.mobile-dock-icon');
+      if (img) previousIcons.set(item.dataset.dockKey, img);
+    }
     mount.replaceChildren();
     if (!tripKey) return;
     for (const entry of tripEntries) {
@@ -84,7 +91,11 @@
       if (entry.type === 'app' && !app) continue;
       const name = entry.type === 'folder' ? '書類' : app.name;
       const b = element('button', 'mobile-dock-item'); b.type='button';b.title=name; b.setAttribute('aria-label', name+'を開く');
-      if (app?.blob) { const img = element('img', 'mobile-dock-icon');img.src=imageUrl(app.blob);img.alt='';b.append(img); }
+      const dockKey = entry.type === 'folder' ? 'folder' : 'app:' + entry.appId;
+      b.dataset.dockKey = dockKey;
+      const retainedIcon = previousIcons.get(dockKey);
+      if (retainedIcon) b.append(retainedIcon);
+      else if (app?.blob) { const img = element('img', 'mobile-dock-icon');img.src=imageUrl(app.blob);img.alt='';b.append(img); }
       else if (entry.type === 'folder' && entry.iconBlob) { const img = element('img', 'mobile-dock-icon'); img.src = imageUrl(entry.iconBlob); img.alt = ''; b.append(img); }
       else if (entry.type === 'folder') b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
       else b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
