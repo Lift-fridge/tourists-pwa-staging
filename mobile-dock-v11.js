@@ -11,12 +11,13 @@
   let dbPromise, tripKey = null, generation = 0, objectUrls = [], library = [], tripEntries = [];
   function openDb() {
     if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(dbName, 2);
+      const request = indexedDB.open(dbName, 3);
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains('apps')) db.createObjectStore('apps', {keyPath: 'id'});
         if (!db.objectStoreNames.contains('trips')) db.createObjectStore('trips', {keyPath: 'id'});
         if (!db.objectStoreNames.contains('app-metadata')) db.createObjectStore('app-metadata', {keyPath: 'id'});
+        if (!db.objectStoreNames.contains('folder-icons')) db.createObjectStore('folder-icons', {keyPath: 'id'});
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -64,11 +65,12 @@
   async function refresh() {
     const current = ++generation;
     try {
-      const [apps, metadata, record] = await Promise.all([all('apps'), all('app-metadata'), tripKey ? get('trips', tripKey) : Promise.resolve(null)]);
+      const [apps, metadata, record, folderImage] = await Promise.all([all('apps'), all('app-metadata'), tripKey ? get('trips', tripKey) : Promise.resolve(null), tripKey ? get('folder-icons',tripKey) : Promise.resolve(null)]);
       if (current !== generation) return;
       const byId = new Map(metadata.map(item => [item.id, item]));
       library = apps.map(app => ({...app, ...(byId.get(app.id) || {})}));
-      tripEntries = record?.entries || []; render();
+      tripEntries = (record?.entries || []).map(entry => entry.type === 'folder' ? {...entry, iconBlob:folderImage?.blob || entry.iconBlob || null} : entry);
+      render();
     } catch (_) { if (current === generation) { mount.replaceChildren(button('＋ 追加', () => message('Dockの保存領域を開けません。'))); } }
   }
   function render() {
@@ -98,7 +100,18 @@
     add.addEventListener('click',chooseType);mount.append(add);
     mount.classList.toggle('mobile-dock-scroll', mount.childElementCount > 4);
   }
-  async function saveTrip(entries) { if (!tripKey) return;await put('trips', {id:tripKey,entries});await refresh(); }
+  async function saveTrip(entries) {
+    if (!tripKey) return;
+    const folder = entries.find(e => e.type === 'folder');
+    // Preserve legacy folder artwork before rewriting trip membership.
+    // Never serialize the artwork Blob into the trip entries again.
+    if (folder?.iconBlob) {
+      const stored = await get('folder-icons',tripKey);
+      if (!stored?.blob || stored.blob !== folder.iconBlob) await put('folder-icons',{id:tripKey,blob:folder.iconBlob});
+    }
+    await put('trips',{id:tripKey,entries:entries.map(e => e.type === 'folder' ? {type:'folder',folder:e.folder} : e)});
+    await refresh();
+  }
   function chooseType() {
     showDialog('Dockに追加');
     actions(button('アプリ', chooseApp),button('書類', chooseFolder));
