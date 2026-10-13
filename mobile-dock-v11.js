@@ -72,14 +72,10 @@
     } catch (_) { if (current === generation) { mount.replaceChildren(button('＋ 追加', () => message('Dockの保存領域を開けません。'))); } }
   }
   function render() {
-    // Keep old object URLs alive until Safari finishes decoding replacement images.
-    // Revoking them before the new images load can briefly show a broken-image icon.
-    const previousUrls = objectUrls;
-    objectUrls = [];
+    // Each render creates fresh object URLs. Retain prior URLs for the lifetime
+    // of the page: WebKit may decode previously displayed Blob URLs lazily.
+    // They are all released on pagehide, not during an unrelated Dock edit.
     mount.replaceChildren();
-    if (previousUrls.length) window.setTimeout(() => {
-      for (const url of previousUrls) URL.revokeObjectURL(url);
-    }, 10000);
     if (!tripKey) return;
     for (const entry of tripEntries) {
       const app = entry.type === 'app' ? library.find(a => a.id === entry.appId) : null;
