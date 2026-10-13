@@ -37,6 +37,30 @@
   const get = (store, id) => transaction(store, 'readonly', s => s.get(id));
   const put = (store, value) => transaction(store, 'readwrite', s => s.put(value));
   const del = (store, id) => transaction(store, 'readwrite', s => s.delete(id));
+  // Remove the app, its metadata and all trip references in one atomic transaction.
+  async function deleteRegisteredApp(id) {
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(['apps', 'app-metadata', 'trips'], 'readwrite');
+      const apps = tx.objectStore('apps');
+      const metadata = tx.objectStore('app-metadata');
+      const trips = tx.objectStore('trips');
+      apps.delete(id);
+      metadata.delete(id);
+      const cursorRequest = trips.openCursor();
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor) return;
+        const entries = cursor.value.entries || [];
+        const filtered = entries.filter(e => !(e.type === 'app' && e.appId === id));
+        if (filtered.length !== entries.length) cursor.update({...cursor.value, entries:filtered});
+        cursor.continue();
+      };
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error || new Error('delete failed'));
+      tx.onabort = () => reject(tx.error || new Error('delete aborted'));
+    });
+  }
   const element = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -131,9 +155,41 @@
     showDialog('アプリを追加');
     if (library.length) {
       message('登録済みから選ぶ');
-      for(const app of library) actions(button(app.name, async()=>{await saveTrip([...tripEntries.filter(e=>e.appId!==app.id),{type:'app',appId:app.id}]);hideDialog();}));
+      for (const app of library) {
+        const add = button(app.name, async () => {
+          add.disabled = true;
+          try {
+            await saveTrip([...tripEntries.filter(e => e.appId !== app.id), {type:'app',appId:app.id}]);
+            hideDialog();
+          } catch (_) {
+            add.disabled = false;
+            message('追加できませんでした。もう一度お試しください。');
+          }
+        });
+        const remove = button('🗑', () => confirmDeleteApp(app), 'mobile-dock-delete-app');
+        remove.setAttribute('aria-label', app.name + 'を登録済みアプリから削除');
+        actions(add, remove);
+      }
     }
     actions(button('新しいアプリを登録', () => newApp()));
+  }
+  function confirmDeleteApp(app) {
+    showDialog('登録済みアプリを削除');
+    message('「' + app.name + '」を完全に削除しますか？');
+    message('すべての旅行のDockからも削除されます。この操作は取り消せません。iPhone内のアプリ本体やショートカットは削除されません。');
+    const cancel = button('キャンセル', chooseApp);
+    const confirm = button('削除する', async () => {
+      confirm.disabled = true;
+      try {
+        await deleteRegisteredApp(app.id);
+        await refresh();
+        chooseApp();
+      } catch (_) {
+        confirm.disabled = false;
+        message('削除できませんでした。登録情報は維持されています。');
+      }
+    }, 'mobile-dock-delete-app-confirm');
+    actions(cancel, confirm);
   }
   function newApp(existing = null) {
     showDialog(existing ? 'アプリを編集' : 'アプリを登録');
