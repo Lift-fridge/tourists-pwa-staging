@@ -134,10 +134,29 @@
       else if (entry.type === 'folder') b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
       else b.append(element('span', 'mobile-dock-icon mobile-dock-icon-fallback', '📁'));
       b.append(element('span', 'mobile-dock-label', name));
-      b.addEventListener('click', () => launch(entry.type === 'folder' ? entry : {...entry,shortcut:app.shortcut}));
-      b.addEventListener('contextmenu', e => {e.preventDefault(); edit(entry);});
-      let hold; b.addEventListener('touchstart',()=>{hold=setTimeout(()=>{hold=undefined;edit(entry)},650)},{passive:true});
-      for(const event of ['touchend','touchmove','touchcancel'])b.addEventListener(event,()=>{if(hold){clearTimeout(hold);hold=undefined}},{passive:true});
+      // Both app and document icons use the same custom long-press menu.
+      // Suppress the native iOS image/link callout without affecting normal taps.
+      let hold;
+      let longPressed = false;
+      const cancelHold = () => { if (hold) { clearTimeout(hold); hold = undefined; } };
+      b.addEventListener('click', e => {
+        if (longPressed) { e.preventDefault(); e.stopPropagation(); longPressed = false; return; }
+        launch(entry.type === 'folder' ? entry : {...entry,shortcut:app.shortcut});
+      });
+      b.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        cancelHold();
+        if (!longPressed) { longPressed = true; edit(entry); }
+      });
+      b.addEventListener('touchstart', () => {
+        cancelHold();
+        longPressed = false;
+        hold = setTimeout(() => { hold = undefined; longPressed = true; edit(entry); }, 650);
+      }, {passive:true});
+      b.addEventListener('touchmove', cancelHold, {passive:true});
+      b.addEventListener('touchcancel', () => { cancelHold(); longPressed = false; }, {passive:true});
+      b.addEventListener('touchend', cancelHold, {passive:true});
       mount.append(b);
     }
     const add = element('button', 'mobile-dock-item mobile-dock-add');add.type='button';
