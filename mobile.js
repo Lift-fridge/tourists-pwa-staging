@@ -41,26 +41,26 @@ const pwaDiagnosticsResult = document.getElementById('mobile-pwa-diagnostics-res
 const pwaDiagnosticsSection = document.getElementById('mobile-pwa-diagnostics');
 const mobileStagingBuild = document.getElementById('mobile-staging-build');
 
-const PWA_SHELL_VERSION = 'staging-acd88d8';
+const PWA_SHELL_VERSION = 'staging-2b42638';
 const PWA_CACHE_PREFIX = 'travel-shiori-staging-shell-';
 const PWA_CACHE_NAME = PWA_CACHE_PREFIX + PWA_SHELL_VERSION;
 const PWA_SHELL_ASSETS = [
-  './index.html?pwa=staging-acd88d8',
-  './mobile.js?pwa=staging-acd88d8',
-  './mobile.css?pwa=staging-acd88d8',
-  './mobile-snapshot-store.js?pwa=staging-acd88d8',
-  './mobile-share-request-ticket-store.js?pwa=staging-acd88d8',
-  './mobile-share-qr-code.js?pwa=staging-acd88d8',
-  './mobile-incoming-snapshot.js?pwa=staging-acd88d8',
-  './tourists-public-config.js?pwa=staging-acd88d8',
-  './assets/jsqr-1.4.0.js?pwa=staging-acd88d8',
-  './manifest.webmanifest?pwa=staging-acd88d8',
-  './assets/icon-192.png?pwa=staging-acd88d8',
-  './assets/icon-512.png?pwa=staging-acd88d8',
-  './assets/icon-maskable-512.png?pwa=staging-acd88d8',
-  './assets/mobile-cover.png?pwa=staging-acd88d8',
-  './assets/mobile-memo-list-background.png?pwa=staging-acd88d8',
-  './assets/mobile-clover.svg?pwa=staging-acd88d8',
+  './index.html?pwa=staging-2b42638',
+  './mobile.js?pwa=staging-2b42638',
+  './mobile.css?pwa=staging-2b42638',
+  './mobile-snapshot-store.js?pwa=staging-2b42638',
+  './mobile-share-request-ticket-store.js?pwa=staging-2b42638',
+  './mobile-share-qr-code.js?pwa=staging-2b42638',
+  './mobile-incoming-snapshot.js?pwa=staging-2b42638',
+  './tourists-public-config.js?pwa=staging-2b42638',
+  './assets/jsqr-1.4.0.js?pwa=staging-2b42638',
+  './manifest.webmanifest?pwa=staging-2b42638',
+  './assets/icon-192.png?pwa=staging-2b42638',
+  './assets/icon-512.png?pwa=staging-2b42638',
+  './assets/icon-maskable-512.png?pwa=staging-2b42638',
+  './assets/mobile-cover.png?pwa=staging-2b42638',
+  './assets/mobile-memo-list-background.png?pwa=staging-2b42638',
+  './assets/mobile-clover.svg?pwa=staging-2b42638',
 ];
 
 let selectedMobileDayKey = null;
@@ -855,7 +855,7 @@ function selectMobileTab(tab, {restoreState = null, sourceAlreadySaved = false} 
 function appendMobileItineraryClover(parent) {
   const clover = document.createElement('img');
   clover.className = 'mobile-itinerary-clover';
-  clover.src = './assets/mobile-clover.svg?pwa=staging-acd88d8';
+  clover.src = './assets/mobile-clover.svg?pwa=staging-2b42638';
   clover.alt = '';
   clover.setAttribute('aria-hidden', 'true');
   parent.append(clover);

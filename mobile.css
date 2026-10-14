@@ -41,7 +41,7 @@ body.mobile-cover-active.mobile-cover-transition-active #mobile-home-message { d
 body.mobile-cover-active.mobile-cover-transition-active .mobile-itinerary-header { visibility: hidden; }
 body.mobile-cover-active.mobile-cover-transition-active .mobile-cover { position: fixed; inset: 0; height: 100svh; }
 
-.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-acd88d8') center center / cover no-repeat; }
+.mobile-cover { position: relative; display: grid; min-height: 100svh; grid-template-rows: auto 1fr auto; isolation: isolate; overflow: hidden; padding: 34px 28px 28px; color: var(--mobile-ink); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; background: var(--mobile-paper) url('./assets/mobile-cover.png?pwa=staging-2b42638') center center / cover no-repeat; }
 .mobile-cover[hidden] { display: none !important; }
 .mobile-cover img { -webkit-user-drag: none; }
 body.mobile-cover-active .mobile-cover { position: absolute; z-index: 1; inset: 0; touch-action: pan-x; will-change: transform; }
@@ -191,7 +191,7 @@ body.mobile-itinerary-active .mobile-itinerary:not([aria-label="旅行メモ"]) 
 .mobile-itinerary[aria-label="旅行メモ"] .mobile-itinerary-days.mobile-memo-list-background {
   background:
     linear-gradient(rgba(246, 246, 244, .88), rgba(246, 246, 244, .88)),
-    url('./assets/mobile-memo-list-background.png?pwa=staging-acd88d8') center top / cover no-repeat;
+    url('./assets/mobile-memo-list-background.png?pwa=staging-2b42638') center top / cover no-repeat;
 }
 .mobile-itinerary[aria-label="旅行メモ"] .mobile-memo-list { display: flex; flex: 1; flex-direction: column; }
 .mobile-memo-heading { margin: 0; color: var(--mobile-ink); font-family: var(--mobile-font-serif); font-size: var(--mobile-font-heading); font-weight: 500; line-height: 1.45; letter-spacing: .02em; }
@@ -273,6 +273,9 @@ body.mobile-itinerary-active .mobile-itinerary:not([aria-label="旅行メモ"]) 
 
 .mobile-dock-item { width:calc((100% - 12px)/4); flex:0 0 calc((100% - 12px)/4); border:0; background:transparent; padding:0; display:grid; justify-items:center; gap:6px; color:var(--mobile-ink); scroll-snap-align:start; font-family:var(--mobile-font-sans); min-width:0; }
 .mobile-dock-icon { width:min(68px, calc(100% - 4px)); aspect-ratio:1; border-radius:19px; object-fit:cover; }
+/* Dock icons are controls, not images to save or share via iOS long press. */
+.mobile-cover-dock .mobile-dock-item, .mobile-cover-dock .mobile-dock-icon { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-user-drag:none; }
+.mobile-cover-dock img.mobile-dock-icon { pointer-events:none; }
 .mobile-dock-icon-fallback { border:1px solid var(--mobile-rule); background:rgba(255,255,255,.6); display:grid; place-items:center; font-size:28px; color:var(--mobile-green); }
 .mobile-dock-label { display:block; width:100%; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
 .mobile-dock-dialog[hidden] { display:none !important; }
