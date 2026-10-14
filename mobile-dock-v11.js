@@ -8,7 +8,7 @@
   const title = document.getElementById('mobile-dock-dialog-title');
   const content = document.getElementById('mobile-dock-dialog-content');
   const close = document.getElementById('mobile-dock-dialog-close');
-  let dbPromise, tripKey = null, generation = 0, objectUrls = [], library = [], tripEntries = [], sharedFolderBlob = null;
+  let dbPromise, tripKey = null, generation = 0, objectUrls = [], library = [], tripEntries = [], sharedFolderBlob = null, lastRenderedTripKey = null;
   const sharedFolderKey = '__shared-folder-icon-v1__';
   function openDb() {
     if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
@@ -112,7 +112,9 @@
     // Reuse existing icon <img> nodes on membership changes. This avoids
     // decoding the same iOS File/Blob again, which can fail in WebKit.
     const previousIcons = new Map();
-    for (const item of mount.querySelectorAll('.mobile-dock-item[data-dock-key]')) {
+    const sameTrip = lastRenderedTripKey === tripKey;
+    lastRenderedTripKey = tripKey;
+    for (const item of (sameTrip ? mount.querySelectorAll('.mobile-dock-item[data-dock-key]') : [])) {
       const img = item.querySelector('img.mobile-dock-icon');
       if (img) previousIcons.set(item.dataset.dockKey, img);
     }
