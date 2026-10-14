@@ -8,7 +8,8 @@
   const title = document.getElementById('mobile-dock-dialog-title');
   const content = document.getElementById('mobile-dock-dialog-content');
   const close = document.getElementById('mobile-dock-dialog-close');
-  let dbPromise, tripKey = null, generation = 0, objectUrls = [], library = [], tripEntries = [];
+  let dbPromise, tripKey = null, generation = 0, objectUrls = [], library = [], tripEntries = [], sharedFolderBlob = null;
+  const sharedFolderKey = '__shared-folder-icon-v1__';
   function openDb() {
     if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(dbName, 3);
@@ -89,11 +90,18 @@
   async function refresh() {
     const current = ++generation;
     try {
-      const [apps, metadata, record, folderImage] = await Promise.all([all('apps'), all('app-metadata'), tripKey ? get('trips', tripKey) : Promise.resolve(null), tripKey ? get('folder-icons',tripKey) : Promise.resolve(null)]);
+      const key = tripKey;
+      const [apps, metadata, record, folderImage, sharedImage] = await Promise.all([all('apps'), all('app-metadata'), key ? get('trips', key) : Promise.resolve(null), key ? get('folder-icons',key) : Promise.resolve(null), get('folder-icons',sharedFolderKey)]);
       if (current !== generation) return;
+      const legacyBlob = folderImage?.blob || record?.entries?.find(e => e.type === 'folder')?.iconBlob;
+      if (!sharedImage?.blob && legacyBlob) {
+        await put('folder-icons', {id:sharedFolderKey,blob:legacyBlob});
+        if (current !== generation) return;
+      }
+      sharedFolderBlob = sharedImage?.blob || legacyBlob || null;
       const byId = new Map(metadata.map(item => [item.id, item]));
       library = apps.map(app => ({...app, ...(byId.get(app.id) || {})}));
-      tripEntries = (record?.entries || []).map(entry => entry.type === 'folder' ? {...entry, iconBlob:folderImage?.blob || entry.iconBlob || null} : entry);
+      tripEntries = (record?.entries || []).map(entry => entry.type === 'folder' ? {...entry, iconBlob:sharedFolderBlob} : entry);
       render();
     } catch (_) { if (current === generation) { mount.replaceChildren(button('＋ 追加', () => message('Dockの保存領域を開けません。'))); } }
   }
@@ -137,13 +145,6 @@
   }
   async function saveTrip(entries) {
     if (!tripKey) return;
-    const folder = entries.find(e => e.type === 'folder');
-    // Preserve legacy folder artwork before rewriting trip membership.
-    // Never serialize the artwork Blob into the trip entries again.
-    if (folder?.iconBlob) {
-      const stored = await get('folder-icons',tripKey);
-      if (!stored?.blob || stored.blob !== folder.iconBlob) await put('folder-icons',{id:tripKey,blob:folder.iconBlob});
-    }
     await put('trips',{id:tripKey,entries:entries.map(e => e.type === 'folder' ? {type:'folder',folder:e.folder} : e)});
     await refresh();
   }
@@ -233,15 +234,29 @@
     const old=tripEntries.find(e=>e.type==='folder');
     showDialog(old?'書類フォルダを変更':'書類フォルダを追加');
     const name=field('iCloud Drive直下のフォルダ名','旅行書類',old?.folder||'');
-    const iconLabel = element('label', '', '書類アイコン画像（任意）');
+    const iconLabel = element('label', '', '共通の書類アイコン');
+    const preview = element('img', 'mobile-dock-icon');
+    preview.alt = '現在の共通アイコン';
+    if (sharedFolderBlob) preview.src = imageUrl(sharedFolderBlob);
+    else preview.hidden = true;
+    content.append(preview);
     const iconFile = element('input', 'mobile-dock-input'); iconFile.type = 'file'; iconFile.accept = 'image/*'; iconLabel.append(iconFile); content.append(iconLabel);
-    const error=message('画像はこのiPhoneにだけ保存されます。未選択なら標準アイコンを使用します。');
+    const error=message('画像変更はすべての旅行に反映されます。未選択なら共通アイコンを維持します。');
+    iconFile.addEventListener('change',()=>{if(iconFile.files?.[0]){preview.src=imageUrl(iconFile.files[0]);preview.hidden=false;}});
     actions(button('保存',async()=>{
       const folder=name.value.trim();
       if(!folder||folder==='.'||folder==='..'||folder.includes('/')||folder.includes('\\')){error.textContent='有効なフォルダ名を入力してください。';return}
-      const iconBlob = iconFile.files?.[0] || old?.iconBlob || null;
+      const iconBlob = iconFile.files?.[0] || null;
       if(iconBlob && (!iconBlob.type.startsWith('image/') || iconBlob.size > limit)){error.textContent='4MB以下の画像を選んでください。';return}
-      try{await saveTrip([{type:'folder',folder,...(iconBlob ? {iconBlob} : {})},...tripEntries.filter(e=>e.type!=='folder')]);hideDialog()}catch(_){error.textContent='保存できませんでした。'}
+      try {
+        if (iconBlob) {
+          await put('folder-icons',{id:sharedFolderKey,blob:new Blob([iconBlob],{type:iconBlob.type})});
+          sharedFolderBlob = iconBlob;
+          for (const img of mount.querySelectorAll('[data-dock-key="folder"] img')) img.remove();
+        }
+        await saveTrip([{type:'folder',folder},...tripEntries.filter(e=>e.type!=='folder')]);
+        hideDialog();
+      } catch (_) { error.textContent='保存できませんでした。'; }
     },'mobile-dock-primary'));
   }
   function edit(entry) {
