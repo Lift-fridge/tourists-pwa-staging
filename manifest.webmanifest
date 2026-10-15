@@ -1,26 +1,26 @@
 {
   "name": "TOURISTS STAGING",
   "short_name": "TOURISTS STAGING",
-  "start_url": "./?pwa=staging-2b42638",
+  "start_url": "./?pwa=staging-ca682e1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f6f6f4",
   "theme_color": "#6b4f2c",
   "icons": [
     {
-      "src": "./assets/icon-192.png?pwa=staging-2b42638",
+      "src": "./assets/icon-192.png?pwa=staging-ca682e1",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./assets/icon-512.png?pwa=staging-2b42638",
+      "src": "./assets/icon-512.png?pwa=staging-ca682e1",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./assets/icon-maskable-512.png?pwa=staging-2b42638",
+      "src": "./assets/icon-maskable-512.png?pwa=staging-ca682e1",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

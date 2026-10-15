@@ -1,9 +1,0 @@
-{
-  "name": "TOURISTS Dock Phase 1 TEST",
-  "short_name": "Dock TEST",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#faf8f3",
-  "theme_color": "#faf8f3"
-}
